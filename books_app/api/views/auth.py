@@ -4,8 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.models.author import Author
-from api.serializers import RegisterAuthorSerializer, \
-    LoginAuthorSerializer, RefreshAuthorSerializer
+from api.serializers.auth import RegisterAuthorSerializer, LoginAuthorSerializer, RefreshAuthorSerializer
 from api.token import AccessJWToken, RefreshJWToken
 
 

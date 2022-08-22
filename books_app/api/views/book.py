@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from api.models.book import Book
 from api.models.comment import Comment
 from api.permissions import IsOwnerOrReadOnly
-from api.serializers import BookSerializer, BookManualSerializer
+from api.serializers.book import BookManualSerializer, BookSerializer
 
 
 class BooksView(APIView):
