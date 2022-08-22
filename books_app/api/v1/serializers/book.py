@@ -16,19 +16,11 @@ class BooksSerializer(serializers.Serializer):
         new_book = Book.objects.create(name=validated_data.get("name"),
                                        publish_date=validated_data.get("publish_date"),
                                        archived=validated_data.get("archived"))
+        new_book.authors.add(self.context.get("user", None))
         return new_book
 
 
 class BookSerializer(serializers.Serializer):
-    id = serializers.IntegerField(required=False)
-    created_at = serializers.DateTimeField(required=False)
-    name = serializers.CharField(max_length=256)
-    publish_date = serializers.DateField("%d.%m.%Y")
-    archived = serializers.BooleanField()
-    authors = AuthorSerializer(many=True, required=False, read_only=True)
-
-
-class BookUpdateSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False)
     created_at = serializers.DateTimeField(required=False)
     name = serializers.CharField(max_length=256)

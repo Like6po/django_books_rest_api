@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,6 +12,7 @@ from api.v1.serializers.book import BooksSerializer, BookSerializer
 
 class BooksView(APIView):
     serializer_class = BooksSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request: Request):
         books = Book.objects.filter(archived=False)
@@ -19,7 +20,7 @@ class BooksView(APIView):
         return Response(serializer.data)
 
     def post(self, request: Request):
-        serializer = BooksSerializer(data=request.data)
+        serializer = BooksSerializer(data=request.data, context={'user': request.user})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
