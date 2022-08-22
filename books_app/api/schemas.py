@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -6,7 +7,7 @@ from pydantic import BaseModel
 class TokenStruct(BaseModel):
     iss: str = "api_app"
     type: str
-    exp: datetime | None = None
+    exp: Optional[datetime] = None
     sub: str
     jti: str  # str(uuid.uuid4())
     iat: datetime  # datetime.utnow()
