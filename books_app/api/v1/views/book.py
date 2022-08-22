@@ -4,30 +4,25 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.models.book import Book
-from api.models.comment import Comment
-from api.permissions import IsOwnerOrReadOnly
-from api.serializers.book import BookManualSerializer, BookSerializer
+from api.v1.models.book import Book
+from api.v1.models.comment import Comment
+from api.v1.permissions import IsOwnerOrReadOnly
+from api.v1.serializers.book import BooksSerializer, BookSerializer
 
 
 class BooksView(APIView):
-    serializer_class = BookManualSerializer
+    serializer_class = BooksSerializer
 
     def get(self, request: Request):
         books = Book.objects.filter(archived=False)
-
-        return Response(
-            [{"id": book.id, "name": book.name,
-              "authors": [{"author_id": author.id, "author_full_name": author.full_name()}
-                          for author in book.authors.all()]}
-             for book in books])
+        serializer = BooksSerializer(books, many=True, context={'request': request})
+        return Response(serializer.data)
 
     def post(self, request: Request):
-        serializer = BookManualSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = BooksSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.validated_data)
+        return Response(serializer.data)
 
 
 class BookView(APIView):
@@ -62,7 +57,7 @@ class BookView(APIView):
             book = Book.objects.get(id=book_id)
         except Book.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        serializer = BookManualSerializer(data=request.data, instance=book)
+        serializer = BookSerializer(data=request.data, instance=book)
         if not serializer.is_valid():
             return Response(status=status.HTTP_400_BAD_REQUEST)
         serializer.save()

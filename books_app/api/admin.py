@@ -1,9 +1,9 @@
 from django.contrib import admin
 
-from api.models.author import Author
-from api.models.book import Book
-from api.models.comment import Comment
-from api.models.token import Token
+from api.v1.models.author import Author
+from api.v1.models.book import Book
+from api.v1.models.comment import Comment
+from api.v1.models.token import Token
 
 
 @admin.register(Author)

@@ -1,8 +1,8 @@
 import bcrypt
 from rest_framework import serializers
 
-from api.models.author import Author
-from api.token import RefreshJWToken
+from api.v1.models.author import Author
+from api.v1.token import RefreshJWToken
 
 
 class LoginAuthorSerializer(serializers.ModelSerializer):
@@ -42,8 +42,9 @@ class RefreshAuthorSerializer(serializers.Serializer):
     refresh_token = serializers.CharField()
 
     def validate(self, data):
-        token = RefreshJWToken(data["refresh_token"])
-        if not token.verify():
+        try:
+            token = RefreshJWToken(data["refresh_token"])
+        except ValueError:
             return serializers.ValidationError("Refresh token invalid")
         self.token = token
         return data

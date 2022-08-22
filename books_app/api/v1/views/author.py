@@ -2,7 +2,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.models.author import Author
+from api.v1.models.author import Author
 
 
 class AuthorsView(APIView):

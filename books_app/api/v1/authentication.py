@@ -3,8 +3,8 @@ from typing import Optional
 from django.core.handlers.wsgi import WSGIRequest
 from rest_framework.authentication import BasicAuthentication
 
-from api.models.author import Author
-from api.token import AccessJWToken
+from api.v1.models.author import Author
+from api.v1.token import AccessJWToken
 
 
 class JWTAuthentication(BasicAuthentication):

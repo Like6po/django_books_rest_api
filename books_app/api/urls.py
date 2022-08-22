@@ -1,13 +1,5 @@
-from django.urls import path
-
-from api.views import auth, author, book
+from django.urls import path, include
 
 urlpatterns = [
-
-    path('register', auth.RegisterView.as_view()),
-    path('login', auth.LoginView.as_view()),
-    path('refresh', auth.RefreshView.as_view()),
-    path('authors', author.AuthorsView.as_view()),
-    path('books', book.BooksView.as_view()),
-    path('books/<int:book_id>', book.BookView.as_view()),
+    path("v1/", include('api.v1.urls')),
 ]

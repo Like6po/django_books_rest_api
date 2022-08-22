@@ -131,7 +131,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'api.authentication.JWTAuthentication',
+        'api.v1.authentication.JWTAuthentication',
     ]
 }
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES"))

@@ -34,7 +34,6 @@ class JWToken(metaclass=abc.ABCMeta):
         self.set_type()
         self.set_iat()
         self.set_exp()
-        self.set_jti(jti=str(uuid.uuid4()))
 
     def __repr__(self):
         return str(self.payload)
