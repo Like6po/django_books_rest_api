@@ -1,10 +1,6 @@
 from django.urls import path
 
-# Serializers define the API representation.
 from api.views import auth, author, book
-
-# Routers provide an easy way of automatically determining the URL conf.
-
 
 urlpatterns = [
 
