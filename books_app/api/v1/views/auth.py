@@ -48,7 +48,7 @@ class LoginView(APIView):
                                  token=refresh_token)
 
         return Response({"access_token": access_token,
-                         "refresh_token": refresh_token}, status=200)
+                         "refresh_token": refresh_token}, status=status.HTTP_200_OK)
 
 
 class RefreshView(APIView):
