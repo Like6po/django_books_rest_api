@@ -1,17 +1,17 @@
 from django.urls import path
 
 # Serializers define the API representation.
-from api import views
+from api.views import auth, author, book
 
 # Routers provide an easy way of automatically determining the URL conf.
 
 
 urlpatterns = [
 
-    path('register', views.RegisterView.as_view()),
-    path('login', views.LoginView.as_view()),
-    path('refresh', views.RefreshView.as_view()),
-    path('authors', views.AuthorsView.as_view()),
-    path('books', views.BooksView.as_view()),
-    path('books/<int:book_id>', views.BookView.as_view()),
+    path('register', auth.RegisterView.as_view()),
+    path('login', auth.LoginView.as_view()),
+    path('refresh', auth.RefreshView.as_view()),
+    path('authors', author.AuthorsView.as_view()),
+    path('books', book.BooksView.as_view()),
+    path('books/<int:book_id>', book.BookView.as_view()),
 ]

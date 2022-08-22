@@ -1,8 +1,10 @@
 import bcrypt
 from rest_framework import serializers
 
-from api.models import Author, Book, Comment
-from api.security import parse_token_by_type
+from api.models.author import Author
+from api.models.book import Book
+from api.models.comment import Comment
+from api.token import RefreshJWToken
 
 
 class AuthorSerializer(serializers.HyperlinkedModelSerializer):
@@ -14,7 +16,29 @@ class AuthorSerializer(serializers.HyperlinkedModelSerializer):
 class BookSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Book
-        fields = ['id', 'name', 'publish_date', 'archived']
+        fields = ['id', 'name', 'publish_date', 'archived', 'authors']
+
+
+class BookManualSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=False)
+    created_at = serializers.DateTimeField(required=False)
+    name = serializers.CharField(max_length=256)
+    publish_date = serializers.DateField("%d.%m.%Y")
+    archived = serializers.BooleanField()
+    authors = AuthorSerializer(many=True, required=False)
+
+    def create(self, validated_data):
+        new_book = Book.objects.create(name=validated_data.get("name"),
+                                       publish_date=validated_data.get("publish_date"),
+                                       archived=validated_data.get("archived"))
+        return new_book
+
+    def update(self, instance: Book, validated_data):
+        instance.name = validated_data.get("name", instance.name)
+        instance.publish_date = validated_data.get("publish_date", instance.publish_date)
+        instance.archived = validated_data.get("archived", instance.archived)
+        instance.save()
+        return instance
 
 
 class CommentSerializer(serializers.HyperlinkedModelSerializer):
@@ -44,9 +68,15 @@ class LoginAuthorSerializer(serializers.Serializer):
     password = serializers.CharField()
 
     def validate(self, data):
-        current_author = Author.objects.get(id=data["author_id"])
-        if bcrypt.checkpw(data["password"].encode('utf-8'), current_author.password_hash.encode('utf-8')):
-            return {"author_id": data["author_id"], "password": data["password"]}
+        try:
+            current_author = Author.objects.get(id=data["author_id"])
+        except Author.DoesNotExist:
+            raise serializers.ValidationError("Login incorrect")
+        try:
+            if bcrypt.checkpw(data["password"].encode('utf-8'), current_author.password_hash.encode('utf-8')):
+                return data
+        except ValueError:
+            raise serializers.ValidationError("Password incorrect")
         raise serializers.ValidationError("Password incorrect")
 
 
@@ -54,7 +84,8 @@ class RefreshAuthorSerializer(serializers.Serializer):
     refresh_token = serializers.CharField()
 
     def validate(self, data):
-        if not (token := parse_token_by_type(token=data["refresh_token"], token_type="refresh")):
+        token = RefreshJWToken(data["refresh_token"])
+        if not token.verify():
             return serializers.ValidationError("Refresh token invalid")
         self.token = token
         return data

@@ -3,9 +3,8 @@ from typing import Optional
 from django.core.handlers.wsgi import WSGIRequest
 from rest_framework.authentication import BasicAuthentication
 
-from api.models import Author
-from api.schemas import TokenStruct
-from api.security import parse_token_by_type
+from api.models.author import Author
+from api.token import AccessJWToken
 
 
 class JWTAuthentication(BasicAuthentication):
@@ -18,8 +17,10 @@ class JWTAuthentication(BasicAuthentication):
             return None
         if not (token := self.validate_token(token_raw)):
             return None
-
-        user = Author.objects.get(id=token.sub)
+        try:
+            user = Author.objects.get(id=token.get("sub"))
+        except Author.DoesNotExist:
+            return None
         return user, token
 
     def get_token_header(self, request) -> str:
@@ -37,7 +38,9 @@ class JWTAuthentication(BasicAuthentication):
 
         return token_data[1]
 
-    def validate_token(self, raw_token) -> Optional[TokenStruct]:
-        if not (token := parse_token_by_type(raw_token, "access")):
+    def validate_token(self, raw_token) -> Optional[AccessJWToken]:
+        try:
+            token = AccessJWToken(raw_token)
+        except ValueError:
             return None
         return token
