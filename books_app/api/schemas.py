@@ -7,6 +7,6 @@ class TokenStruct(BaseModel):
     iss: str = "api_app"
     type: str
     exp: datetime | None = None
-    sub: int
+    sub: str
     jti: str  # str(uuid.uuid4())
     iat: datetime  # datetime.utnow()

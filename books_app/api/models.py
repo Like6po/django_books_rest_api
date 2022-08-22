@@ -22,6 +22,9 @@ class Author(models.Model):
     def __str__(self):
         return f"<ID{self.id} - {self.first_name} {self.second_name}>"
 
+    def is_authenticated(self):
+        return True
+
 
 class Book(models.Model):
     class Meta:

@@ -2,6 +2,7 @@ import bcrypt
 from rest_framework import serializers
 
 from api.models import Author, Book, Comment
+from api.security import parse_token_by_type
 
 
 class AuthorSerializer(serializers.HyperlinkedModelSerializer):
@@ -11,8 +12,6 @@ class AuthorSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class BookSerializer(serializers.HyperlinkedModelSerializer):
-
-
     class Meta:
         model = Book
         fields = ['id', 'name', 'publish_date', 'archived']
@@ -29,9 +28,9 @@ class LoginAuthorSerializer(serializers.ModelSerializer):
 
 
 class RegisterAuthorSerializer(serializers.Serializer):
-    first_name = serializers.CharField()
-    second_name = serializers.CharField()
-    password = serializers.CharField()
+    first_name = serializers.CharField(max_length=32)
+    second_name = serializers.CharField(max_length=32)
+    password = serializers.CharField(min_length=6)
 
     def create(self, validated_data):
         return Author.objects.create(first_name=validated_data["first_name"],
@@ -49,6 +48,16 @@ class LoginAuthorSerializer(serializers.Serializer):
         if bcrypt.checkpw(data["password"].encode('utf-8'), current_author.password_hash.encode('utf-8')):
             return {"author_id": data["author_id"], "password": data["password"]}
         raise serializers.ValidationError("Password incorrect")
+
+
+class RefreshAuthorSerializer(serializers.Serializer):
+    refresh_token = serializers.CharField()
+
+    def validate(self, data):
+        if not (token := parse_token_by_type(token=data["refresh_token"], token_type="refresh")):
+            return serializers.ValidationError("Refresh token invalid")
+        self.token = token
+        return data
 
 
 class AuthorInfoSerializer(serializers.Serializer):
