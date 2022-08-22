@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django.core.handlers.wsgi import WSGIRequest
 from rest_framework.authentication import BasicAuthentication
 
@@ -24,7 +26,7 @@ class JWTAuthentication(BasicAuthentication):
         token = request.headers.get("Authorization")
         return token
 
-    def parse_token(self, data) -> str | None:
+    def parse_token(self, data) -> Optional[str]:
         token_data = data.split()
         if len(token_data) != 2:
             return None
@@ -35,7 +37,7 @@ class JWTAuthentication(BasicAuthentication):
 
         return token_data[1]
 
-    def validate_token(self, raw_token) -> TokenStruct | None:
+    def validate_token(self, raw_token) -> Optional[TokenStruct]:
         if not (token := parse_token_by_type(raw_token, "access")):
             return None
         return token

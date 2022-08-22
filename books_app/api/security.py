@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timedelta
+from typing import Optional
 
 from jose import jwt, ExpiredSignatureError
 
@@ -30,7 +31,7 @@ def create_access_token(user_identifier: str) -> tuple[TokenStruct, str]:
     return access_token, access_token_encoded
 
 
-def parse_token(token: str) -> TokenStruct | None:
+def parse_token(token: str) -> Optional[TokenStruct]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms="HS256")
         if payload.get("sub") is None:
@@ -41,7 +42,7 @@ def parse_token(token: str) -> TokenStruct | None:
     return TokenStruct(**payload)
 
 
-def parse_token_by_type(token: str, token_type: str) -> TokenStruct | None:
+def parse_token_by_type(token: str, token_type: str) -> Optional[TokenStruct]:
     token_parsed: TokenStruct = parse_token(token)
     if not token_parsed:
         return None
