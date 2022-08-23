@@ -9,7 +9,6 @@ from api.v1.serializers.book import BooksSerializer, BookSerializer, BookUpdateS
 
 
 class BooksView(APIView):
-    serializer_class = BooksSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request: Request):
@@ -25,7 +24,6 @@ class BooksView(APIView):
 
 
 class BookView(APIView):
-    serializer_class = BookSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request: Request, book_id: int):

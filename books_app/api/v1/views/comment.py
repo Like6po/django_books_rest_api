@@ -14,9 +14,7 @@ class CommentsView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request: Request, book_id: int):
-
         comments = Comment.objects.filter(book_id=book_id)
-
         serializer = CommentsSerializer(comments, many=True, context={'request': request})
         return Response(serializer.data)
 
