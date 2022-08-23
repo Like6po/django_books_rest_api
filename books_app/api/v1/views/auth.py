@@ -33,13 +33,15 @@ class RegisterAuthorView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        _, access_token = AccessJWToken()(user_identifier=str(serializer.validated_data["id"]))
+        _, access_token = AccessJWToken()(user_identifier=str(serializer.data["id"]))
         _, refresh_token = RefreshJWToken()()
-        Token.objects.create(author_id=serializer.validated_data["id"],
+        Token.objects.create(author_id=serializer.data["id"],
                              token=refresh_token)
-
-        return Response(serializer.data.update({"access_token": access_token,
-                                                "refresh_token": refresh_token}), status=status.HTTP_201_CREATED)
+        return Response({"id": serializer.data["id"],
+                         "first_name": serializer.data["first_name"],
+                         "second_name": serializer.data["second_name"],
+                         "access_token": access_token,
+                         "refresh_token": refresh_token}, status=status.HTTP_201_CREATED)
 
 
 class LoginView(APIView):
