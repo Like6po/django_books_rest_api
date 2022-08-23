@@ -37,7 +37,7 @@ class LoginView(APIView):
     def post(self, request: Request):
         serializer = LoginUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        _, access_token = AccessJWToken()(user_identifier=serializer.validated_data["author_id"])
+        _, access_token = AccessJWToken()(user_identifier=str(serializer.validated_data["author_id"]))
 
         refresh_token_db = Token.objects.filter(author_id=serializer.validated_data["author_id"], is_active=True)
         if not refresh_token_db:
