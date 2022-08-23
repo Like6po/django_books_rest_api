@@ -10,30 +10,39 @@ from api.v1.token import AccessJWToken, RefreshJWToken
 
 
 class RegisterUserView(APIView):
-    serializer_class = RegisterUserSerializer
-
     def post(self, request: Request):
         serializer = RegisterUserSerializer(data=request.data,
                                             context={"role": User.ROLES.USER.value})
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        _, access_token = AccessJWToken()(user_identifier=str(serializer.data["id"]))
+        _, refresh_token = RefreshJWToken()()
+        Token.objects.create(author_id=serializer.data["id"],
+                             token=refresh_token)
+        return Response({"id": serializer.data["id"],
+                         "first_name": serializer.data["first_name"],
+                         "second_name": serializer.data["second_name"],
+                         "access_token": access_token,
+                         "refresh_token": refresh_token}, status=status.HTTP_201_CREATED)
 
 
 class RegisterAuthorView(APIView):
-    serializer_class = RegisterUserSerializer
-
     def post(self, request: Request):
         serializer = RegisterUserSerializer(data=request.data,
                                             context={"role": User.ROLES.AUTHOR.value})
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        _, access_token = AccessJWToken()(user_identifier=str(serializer.validated_data["id"]))
+        _, refresh_token = RefreshJWToken()()
+        Token.objects.create(author_id=serializer.validated_data["id"],
+                             token=refresh_token)
+
+        return Response(serializer.data.update({"access_token": access_token,
+                                                "refresh_token": refresh_token}), status=status.HTTP_201_CREATED)
 
 
 class LoginView(APIView):
-    serializer_class = LoginUserSerializer
-
     def post(self, request: Request):
         serializer = LoginUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
