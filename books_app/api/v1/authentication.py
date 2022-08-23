@@ -3,7 +3,7 @@ from typing import Optional
 from django.core.handlers.wsgi import WSGIRequest
 from rest_framework.authentication import BasicAuthentication
 
-from api.v1.models.author import Author
+from api.v1.models.user import User
 from api.v1.token import AccessJWToken
 
 
@@ -18,8 +18,8 @@ class JWTAuthentication(BasicAuthentication):
         if not (token := self.validate_token(token_raw)):
             return None
         try:
-            user = Author.objects.get(id=token.get("sub"))
-        except Author.DoesNotExist:
+            user = User.objects.get(id=token.get("sub"))
+        except User.DoesNotExist:
             return None
         return user, token
 

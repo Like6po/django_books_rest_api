@@ -1,7 +1,7 @@
 from rest_framework import serializers, status
 
-from api.v1.models.author import Author
 from api.v1.models.book import Book
+from api.v1.models.user import User
 
 
 class BookAuthorSerializer(serializers.Serializer):
@@ -23,7 +23,8 @@ class BooksSerializer(serializers.Serializer):
         new_book = Book.objects.create(name=validated_data.get("name"),
                                        publish_date=validated_data.get("publish_date"),
                                        archived=validated_data.get("archived"))
-        new_book.authors.add(self.context.get("user", None))
+        if author := self.context.get("user", None):
+            new_book.authors.add(author)
         return new_book
 
 
@@ -50,7 +51,8 @@ class BookUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=256, required=False)
     publish_date = serializers.DateField("%d.%m.%Y", required=False)
     archived = serializers.BooleanField(required=False)
-    authors = serializers.PrimaryKeyRelatedField(many=True, required=False, queryset=Author.objects.all())
+    authors = serializers.PrimaryKeyRelatedField(many=True, required=False,
+                                                 queryset=User.objects.filter(role=User.ROLES.AUTHOR.value))
 
     def validate(self, data):
         if not data:

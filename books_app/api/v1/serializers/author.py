@@ -1,6 +1,6 @@
 from rest_framework import serializers, status
 
-from api.v1.models.author import Author
+from api.v1.models.user import User
 
 
 class AuthorBooksSerializer(serializers.Serializer):
@@ -19,8 +19,9 @@ class AuthorsSerializer(serializers.Serializer):
     book_set = AuthorBooksSerializer(many=True, read_only=True)
 
     def create(self, validated_data):
-        author = Author.objects.create(first_name=validated_data.get("first_name"),
-                                       second_name=validated_data.get("second_name"))
+        author = User.objects.create(first_name=validated_data.get("first_name"),
+                                     second_name=validated_data.get("second_name"),
+                                     role=User.ROLES.AUTHOR.value)
 
         return author
 
@@ -29,7 +30,7 @@ class AuthorsSerializer(serializers.Serializer):
             raise serializers.ValidationError("Empty data", code=status.HTTP_400_BAD_REQUEST)
         return data
 
-    def update(self, instance: Author, validated_data):
+    def update(self, instance: User, validated_data):
         instance.first_name = validated_data.get("first_name", instance.first_name)
         instance.second_name = validated_data.get("second_name", instance.second_name)
         instance.save()

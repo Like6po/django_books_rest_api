@@ -10,7 +10,7 @@ class Comment(models.Model):
 
     id = models.AutoField("ID", primary_key=True)
     created_at = models.DateTimeField("Время создания", auto_now_add=True)
-    author = models.ForeignKey(to="Author", on_delete=models.CASCADE, to_field="id")
+    author = models.ForeignKey(to="User", on_delete=models.CASCADE, to_field="id")
     book = models.ForeignKey(to="Book", on_delete=models.CASCADE, to_field="id")
     text = models.CharField("Текст", max_length=4096)
 

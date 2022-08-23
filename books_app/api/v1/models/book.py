@@ -13,7 +13,7 @@ class Book(models.Model):
     name = models.CharField("Название", max_length=256)
     publish_date = models.DateField("Дата выпуска")
     archived = models.BooleanField("Архивировано", default=False)
-    authors = models.ManyToManyField(to="Author", blank=False)
+    authors = models.ManyToManyField(to="User", blank=True)
 
     def __str__(self):
         return f"<ID{self.id}- {self.name}>"

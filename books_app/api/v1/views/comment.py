@@ -1,17 +1,16 @@
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.v1.models.book import Book
 from api.v1.models.comment import Comment
-from api.v1.permissions import IsOwnerOrReadOnly
 from api.v1.serializers.comment import CommentsSerializer, CommentUpdateSerializer, CommentSerializer
 
 
 class CommentsView(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, book_id: int):
         comments = Comment.objects.filter(book_id=book_id)
@@ -31,7 +30,7 @@ class CommentsView(APIView):
 
 
 class CommentView(APIView):
-    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, book_id: int, comment_id: int):
         try:
@@ -54,6 +53,10 @@ class CommentView(APIView):
             comment = book.comment_set.get(id=comment_id)
         except Comment.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if not (comment.author == request.user or (request.user in book.authors.all()) or request.user.is_admin):
+            return Response({"detail": "You can't delete this comment"}, status=status.HTTP_403_FORBIDDEN)
+
         comment.delete()
         return Response(status=status.HTTP_200_OK)
 
@@ -66,6 +69,10 @@ class CommentView(APIView):
             comment = book.comment_set.get(id=comment_id)
         except Comment.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if not (comment.author == request.user or request.user.is_admin):
+            return Response({"detail": "You can't edit this comment"}, status=status.HTTP_403_FORBIDDEN)
+
         serializer = CommentUpdateSerializer(data=request.data, instance=comment)
         serializer.is_valid(raise_exception=True)
         serializer.save()

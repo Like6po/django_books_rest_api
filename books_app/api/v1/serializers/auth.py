@@ -1,34 +1,34 @@
 import bcrypt
 from rest_framework import serializers
 
-from api.v1.models.author import Author
+from api.v1.models.user import User
 from api.v1.token import RefreshJWToken
 
 
-class LoginAuthorSerializer(serializers.ModelSerializer):
-    access_token = serializers.CharField()
-
-
-class RegisterAuthorSerializer(serializers.Serializer):
+class RegisterUserSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
     first_name = serializers.CharField(max_length=32)
     second_name = serializers.CharField(max_length=32)
-    password = serializers.CharField(min_length=6)
+    password = serializers.CharField(min_length=6, write_only=True)
 
     def create(self, validated_data):
-        return Author.objects.create(first_name=validated_data["first_name"],
-                                     second_name=validated_data["second_name"],
-                                     password_hash=bcrypt.hashpw(validated_data["password"].encode('utf-8'),
-                                                                 bcrypt.gensalt()).decode("utf-8"))
+        user = User.objects.create(first_name=validated_data["first_name"],
+                                   second_name=validated_data["second_name"],
+                                   password_hash=bcrypt.hashpw(validated_data["password"].encode('utf-8'),
+                                                               bcrypt.gensalt()).decode("utf-8"),
+                                   role=self.context.get("role"))
+        return user
 
 
-class LoginAuthorSerializer(serializers.Serializer):
+class LoginUserSerializer(serializers.Serializer):
     author_id = serializers.IntegerField()
     password = serializers.CharField()
 
     def validate(self, data):
         try:
-            current_author = Author.objects.get(id=data["author_id"])
-        except Author.DoesNotExist:
+            current_author = User.objects.get(id=data["author_id"])
+        except User.DoesNotExist:
             raise serializers.ValidationError("Login incorrect")
         try:
             if bcrypt.checkpw(data["password"].encode('utf-8'), current_author.password_hash.encode('utf-8')):
@@ -38,7 +38,7 @@ class LoginAuthorSerializer(serializers.Serializer):
         raise serializers.ValidationError("Password incorrect")
 
 
-class RefreshAuthorSerializer(serializers.Serializer):
+class RefreshUserSerializer(serializers.Serializer):
     refresh_token = serializers.CharField()
 
     def validate(self, data):
@@ -48,8 +48,3 @@ class RefreshAuthorSerializer(serializers.Serializer):
             return serializers.ValidationError("Refresh token invalid")
         self.token = token
         return data
-
-
-class AuthorInfoSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    full_name = serializers.CharField()

@@ -1,13 +1,13 @@
 from django.contrib import admin
 
-from api.v1.models.author import Author
 from api.v1.models.book import Book
 from api.v1.models.comment import Comment
 from api.v1.models.token import Token
+from api.v1.models.user import User
 
 
-@admin.register(Author)
-class AuthorAdmin(admin.ModelAdmin):
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
     pass
 
 
