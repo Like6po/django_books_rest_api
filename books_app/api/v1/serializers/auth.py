@@ -10,24 +10,33 @@ class RegisterUserSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField(read_only=True)
     first_name = serializers.CharField(max_length=32)
     second_name = serializers.CharField(max_length=32)
+    email = serializers.EmailField()
     password = serializers.CharField(min_length=6, write_only=True)
+
+    def validate(self, data):
+        try:
+            User.objects.get(email=data["email"])
+            raise serializers.ValidationError("Email exists")
+        except User.DoesNotExist:
+            return data
 
     def create(self, validated_data):
         user = User.objects.create(first_name=validated_data["first_name"],
                                    second_name=validated_data["second_name"],
                                    password_hash=bcrypt.hashpw(validated_data["password"].encode('utf-8'),
                                                                bcrypt.gensalt()).decode("utf-8"),
-                                   role=self.context.get("role"))
+                                   role=self.context.get("role"),
+                                   email=validated_data["email"])
         return user
 
 
 class LoginUserSerializer(serializers.Serializer):
-    author_id = serializers.IntegerField()
+    email = serializers.EmailField()
     password = serializers.CharField()
 
     def validate(self, data):
         try:
-            current_author = User.objects.get(id=data["author_id"])
+            current_author = User.objects.get(email=data["email"])
         except User.DoesNotExist:
             raise serializers.ValidationError("Login incorrect")
         try:

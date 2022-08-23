@@ -17,6 +17,7 @@ class User(models.Model):
     created_at = models.DateTimeField("Время регистрации", auto_now_add=True)
     first_name = models.CharField("Имя", max_length=128)
     second_name = models.CharField("Фамилия", max_length=128)
+    email = models.EmailField("Почта", unique=True, default=None)
     password_hash = models.CharField("Хеш пароля", max_length=256)
     role = models.IntegerField("Роль", choices=ROLES.choices, default=ROLES.USER.value)
 

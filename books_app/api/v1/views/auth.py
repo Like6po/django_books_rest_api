@@ -20,6 +20,7 @@ class RegisterUserView(APIView):
         Token.objects.create(author_id=serializer.data["id"],
                              token=refresh_token)
         return Response({"id": serializer.data["id"],
+                         "email": serializer.data["email"],
                          "first_name": serializer.data["first_name"],
                          "second_name": serializer.data["second_name"],
                          "access_token": access_token,
@@ -38,6 +39,7 @@ class RegisterAuthorView(APIView):
         Token.objects.create(author_id=serializer.data["id"],
                              token=refresh_token)
         return Response({"id": serializer.data["id"],
+                         "email": serializer.data["email"],
                          "first_name": serializer.data["first_name"],
                          "second_name": serializer.data["second_name"],
                          "access_token": access_token,
@@ -48,12 +50,15 @@ class LoginView(APIView):
     def post(self, request: Request):
         serializer = LoginUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        _, access_token = AccessJWToken()(user_identifier=str(serializer.validated_data["author_id"]))
 
-        refresh_token_db = Token.objects.filter(author_id=serializer.validated_data["author_id"], is_active=True)
+        user = User.objects.get(email=serializer.validated_data["email"])
+
+        _, access_token = AccessJWToken()(user_identifier=str(user.id))
+
+        refresh_token_db = Token.objects.filter(author_id=user.id, is_active=True)
         if not refresh_token_db:
             _, refresh_token = RefreshJWToken()()
-            Token.objects.create(author_id=serializer.validated_data["author_id"],
+            Token.objects.create(author_id=user.id,
                                  token=refresh_token)
 
         refresh_token = refresh_token_db.first().token
@@ -65,7 +70,7 @@ class LoginView(APIView):
             except Token.DoesNotExist:
                 pass
             _, refresh_token = RefreshJWToken()()
-            Token.objects.create(author_id=serializer.validated_data["author_id"],
+            Token.objects.create(author_id=user.id,
                                  token=refresh_token)
 
         return Response({"access_token": access_token,
