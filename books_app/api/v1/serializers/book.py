@@ -2,7 +2,13 @@ from rest_framework import serializers, status
 
 from api.v1.models.author import Author
 from api.v1.models.book import Book
-from api.v1.serializers.author import AuthorSerializer
+
+
+class BookAuthorSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    first_name = serializers.CharField(max_length=32)
+    second_name = serializers.CharField(max_length=32)
 
 
 class BooksSerializer(serializers.Serializer):
@@ -11,7 +17,7 @@ class BooksSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=256)
     publish_date = serializers.DateField("%d.%m.%Y")
     archived = serializers.BooleanField()
-    authors = AuthorSerializer(many=True, required=False, read_only=True)
+    authors = BookAuthorSerializer(many=True, required=False, read_only=True)
 
     def create(self, validated_data):
         new_book = Book.objects.create(name=validated_data.get("name"),
@@ -24,7 +30,7 @@ class BooksSerializer(serializers.Serializer):
 class BookCommentSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False)
     created_at = serializers.DateTimeField(required=False)
-    author = AuthorSerializer(required=False, read_only=True)
+    author = BookAuthorSerializer(required=False, read_only=True)
     text = serializers.CharField(max_length=4096)
 
 
@@ -34,7 +40,7 @@ class BookSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=256, required=False)
     publish_date = serializers.DateField("%d.%m.%Y", required=False)
     archived = serializers.BooleanField(required=False)
-    authors = AuthorSerializer(many=True, required=False, read_only=True)
+    authors = BookAuthorSerializer(many=True, required=False, read_only=True)
     comment_set = BookCommentSerializer(many=True, required=False, read_only=True)
 
 

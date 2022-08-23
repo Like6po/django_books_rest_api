@@ -1,7 +1,36 @@
-from rest_framework import serializers
+from rest_framework import serializers, status
+
+from api.v1.models.author import Author
 
 
-class AuthorSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
+class AuthorBooksSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=False)
+    created_at = serializers.DateTimeField(required=False)
+    name = serializers.CharField(max_length=256, required=False)
+    publish_date = serializers.DateField("%d.%m.%Y", required=False)
+    archived = serializers.BooleanField(required=False)
+
+
+class AuthorsSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
     first_name = serializers.CharField(max_length=32)
     second_name = serializers.CharField(max_length=32)
+    book_set = AuthorBooksSerializer(many=True, read_only=True)
+
+    def create(self, validated_data):
+        author = Author.objects.create(first_name=validated_data.get("first_name"),
+                                       second_name=validated_data.get("second_name"))
+
+        return author
+
+    def validate(self, data):
+        if not data:
+            raise serializers.ValidationError("Empty data", code=status.HTTP_400_BAD_REQUEST)
+        return data
+
+    def update(self, instance: Author, validated_data):
+        instance.first_name = validated_data.get("first_name", instance.first_name)
+        instance.second_name = validated_data.get("second_name", instance.second_name)
+        instance.save()
+        return instance

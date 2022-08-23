@@ -1,14 +1,20 @@
 from rest_framework import serializers
 
 from api.v1.models.comment import Comment
-from api.v1.serializers.author import AuthorSerializer
 from api.v1.serializers.book import BooksSerializer
+
+
+class CommentAuthorsSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    first_name = serializers.CharField(max_length=32)
+    second_name = serializers.CharField(max_length=32)
 
 
 class CommentsSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
-    author = AuthorSerializer(read_only=True)
+    author = CommentAuthorsSerializer(read_only=True)
     text = serializers.CharField(max_length=4096)
 
     def create(self, validated_data):
@@ -23,14 +29,14 @@ class CommentSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
     book = BooksSerializer(read_only=True)
-    author = AuthorSerializer(read_only=True)
+    author = CommentAuthorsSerializer(read_only=True)
     text = serializers.CharField(max_length=4096, read_only=True)
 
 
 class CommentUpdateSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
-    author = AuthorSerializer(read_only=True)
+    author = CommentAuthorsSerializer(read_only=True)
     text = serializers.CharField(max_length=4096)
 
     def update(self, instance: Comment, validated_data):
