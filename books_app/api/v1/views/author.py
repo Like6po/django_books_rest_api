@@ -43,7 +43,6 @@ class AuthorView(APIView):
             author = User.objects.get(id=author_id)
         except User.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        self.check_object_permissions(self.request, author)
         author.delete()
         return Response(status=status.HTTP_200_OK)
 
@@ -54,7 +53,6 @@ class AuthorView(APIView):
             author = User.objects.get(id=author_id)
         except User.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        self.check_object_permissions(self.request, author)
         serializer = AuthorsSerializer(data=request.data, instance=author)
         serializer.is_valid(raise_exception=True)
         serializer.save()

@@ -47,7 +47,6 @@ class BookView(APIView):
         if not (request.user.is_admin or request.user in book.authors.all()):
             return Response({"detail": "You can't delete this book"}, status=status.HTTP_403_FORBIDDEN)
         book.delete()
-        self.check_object_permissions(self.request, book)
         return Response(status=status.HTTP_200_OK)
 
     def patch(self, request: Request, book_id):
