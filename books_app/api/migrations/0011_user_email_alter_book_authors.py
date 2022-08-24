@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='email',
-            field=models.EmailField(default=None, max_length=254, verbose_name='Почта'),
+            field=models.EmailField(default=None, max_length=254, null=True, verbose_name='Почта'),
         ),
         migrations.AlterField(
             model_name='book',
