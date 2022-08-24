@@ -34,13 +34,14 @@ class AuthorView(RetrieveUpdateDestroyAPIView):
     def delete(self, request: Request, *args, **kwargs):
         if not request.user.is_admin:
             return Response({"detail": "Only admins can delete accounts"}, status=status.HTTP_403_FORBIDDEN)
+        if request.user.id == kwargs["author_id"]:
+            return Response({"detail": "Cant delete self account"}, status=status.HTTP_403_FORBIDDEN)
         return super().delete(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
         if not (request.user.is_admin or request.user.id == kwargs['author_id']):
             return Response({"detail": "Only admins can change another accounts"}, status=status.HTTP_403_FORBIDDEN)
-        if request.user.id == kwargs["author_id"]:
-            return Response({"detail": "Cant delete self account"}, status=status.HTTP_403_FORBIDDEN)
+
         return super().update(request, *args, **kwargs)
 
     def patch(self, request: Request, *args, **kwargs):
