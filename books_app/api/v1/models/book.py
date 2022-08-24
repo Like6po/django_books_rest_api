@@ -16,4 +16,6 @@ class Book(models.Model):
     authors = models.ManyToManyField(to="User", blank=True)
 
     def __str__(self):
-        return f"<ID{self.id}- {self.name}>"
+        authors = self.authors.all()
+        authors_str = "; ".join([author.fio for author in authors]) if authors else "Неизвестный автор"
+        return f"{authors_str} - {self.name}"

@@ -8,12 +8,22 @@ from api.v1.models.user import User
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("identifier",)
+    list_filter = ("email", "first_name", "second_name", "patronymic")
+    search_fields = ("email", "first_name", "second_name", "patronymic")
+
+    def identifier(self, object: User):
+        return object.__str__()
 
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("identifier",)
+    list_filter = ("name", "authors__first_name", "authors__second_name", "authors__patronymic")
+    search_fields = ("name", "authors__first_name", "authors__second_name", "authors__patronymic")
+
+    def identifier(self, object: Book):
+        return object.__str__()
 
 
 @admin.register(Comment)

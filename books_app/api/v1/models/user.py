@@ -25,10 +25,14 @@ class User(models.Model):
     def full_name(self):
         return f"{self.first_name} {self.second_name}"
 
+    @property
+    def fio(self):
+        return f"{self.full_name()}" + (f" {self.patronymic}" if self.patronymic else "")
+
     full_name.short_description = "Полное имя"
 
     def __str__(self):
-        return f"<ID{self.id} - {self.first_name} {self.second_name}>"
+        return f"{self.fio} - {self.email}"
 
     @property
     def is_authenticated(self):
