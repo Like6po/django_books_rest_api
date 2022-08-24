@@ -7,8 +7,9 @@ from api.v1.models.user import User
 class BookAuthorSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
-    first_name = serializers.CharField(max_length=32)
-    second_name = serializers.CharField(max_length=32)
+    first_name = serializers.CharField(max_length=128)
+    second_name = serializers.CharField(max_length=128)
+    patronymic = serializers.CharField(max_length=128)
 
 
 class BooksSerializer(serializers.Serializer):

@@ -8,8 +8,9 @@ from api.v1.token import RefreshJWToken
 class RegisterUserSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
-    first_name = serializers.CharField(max_length=32)
-    second_name = serializers.CharField(max_length=32)
+    first_name = serializers.CharField(max_length=128)
+    patronymic = serializers.CharField(max_length=128, required=False)
+    second_name = serializers.CharField(max_length=128)
     email = serializers.EmailField()
     password = serializers.CharField(min_length=6, write_only=True)
 
@@ -23,6 +24,7 @@ class RegisterUserSerializer(serializers.Serializer):
     def create(self, validated_data):
         user = User.objects.create(first_name=validated_data["first_name"],
                                    second_name=validated_data["second_name"],
+                                   patronymic=validated_data.get("patronymic", None),
                                    password_hash=bcrypt.hashpw(validated_data["password"].encode('utf-8'),
                                                                bcrypt.gensalt()).decode("utf-8"),
                                    role=self.context.get("role"),
