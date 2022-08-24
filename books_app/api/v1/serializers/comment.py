@@ -30,13 +30,6 @@ class CommentSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField(read_only=True)
     book = BooksSerializer(read_only=True)
     author = CommentAuthorsSerializer(read_only=True)
-    text = serializers.CharField(max_length=4096, read_only=True)
-
-
-class CommentUpdateSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
-    created_at = serializers.DateTimeField(read_only=True)
-    author = CommentAuthorsSerializer(read_only=True)
     text = serializers.CharField(max_length=4096)
 
     def update(self, instance: Comment, validated_data):

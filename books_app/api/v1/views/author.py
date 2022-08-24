@@ -1,59 +1,49 @@
 from rest_framework import status
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from api.v1.models.user import User
-from api.v1.serializers.author import AuthorsSerializer
+from api.v1.serializers.author import AuthorsSerializer, AuthorsUpdateSerializer
 
 
-class AuthorsView(APIView):
+class AuthorsView(ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = AuthorsSerializer
     permission_classes = [IsAuthenticated]
 
-    def get(self, request: Request):
-        authors = User.objects.filter(role=User.ROLES.AUTHOR.value)
-        serializer = AuthorsSerializer(instance=authors, many=True, context={'request': request})
-        return Response(serializer.data)
+    def get_queryset(self):
+        return self.queryset.filter(role=User.ROLES.AUTHOR.value)
 
-    def post(self, request: Request):
+    def create(self, request: Request, *args, **kwargs):
         if not request.user.is_admin:
             return Response({"detail": "Only admins can create authors"}, status=status.HTTP_403_FORBIDDEN)
-        serializer = AuthorsSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+        return super().create(request, *args, **kwargs)
 
 
-class AuthorView(APIView):
+class AuthorView(RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = AuthorsUpdateSerializer
     permission_classes = [IsAuthenticated]
 
-    def get(self, request: Request, author_id: int):
-        try:
-            book = User.objects.get(id=author_id)
-        except User.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        serializer = AuthorsSerializer(book, context={'request': request})
-        return Response(serializer.data)
+    def get_object(self):
+        queryset = self.get_queryset()
+        return get_object_or_404(queryset, id=self.kwargs["author_id"], role=User.ROLES.AUTHOR.value)
 
-    def delete(self, request: Request, author_id: int):
+    def delete(self, request: Request, *args, **kwargs):
         if not request.user.is_admin:
-            return Response({"detail": "Only admins can delete another accounts"}, status=status.HTTP_403_FORBIDDEN)
-        try:
-            author = User.objects.get(id=author_id)
-        except User.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        author.delete()
-        return Response(status=status.HTTP_200_OK)
+            return Response({"detail": "Only admins can delete accounts"}, status=status.HTTP_403_FORBIDDEN)
+        return super().delete(request, *args, **kwargs)
 
-    def patch(self, request: Request, author_id):
-        if not (request.user.is_admin or request.user.id == author_id):
+    def update(self, request, *args, **kwargs):
+        if not (request.user.is_admin or request.user.id == kwargs['author_id']):
             return Response({"detail": "Only admins can change another accounts"}, status=status.HTTP_403_FORBIDDEN)
-        try:
-            author = User.objects.get(id=author_id)
-        except User.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        serializer = AuthorsSerializer(data=request.data, instance=author)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+        if request.user.id == kwargs["author_id"]:
+            return Response({"detail": "Cant delete self account"}, status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
+
+    def patch(self, request: Request, *args, **kwargs):
+        if not (request.user.is_admin or request.user.id == kwargs['author_id']):
+            return Response({"detail": "Only admins can change another accounts"}, status=status.HTTP_403_FORBIDDEN)
+        return super().patch(request, *args, **kwargs)

@@ -36,23 +36,14 @@ class BookCommentSerializer(serializers.Serializer):
 
 
 class BookSerializer(serializers.Serializer):
-    id = serializers.IntegerField(required=False)
-    created_at = serializers.DateTimeField(required=False)
-    name = serializers.CharField(max_length=256, required=False)
-    publish_date = serializers.DateField("%d.%m.%Y", required=False)
-    archived = serializers.BooleanField(required=False)
-    authors = BookAuthorSerializer(many=True, required=False, read_only=True)
-    comment_set = BookCommentSerializer(many=True, required=False, read_only=True)
-
-
-class BookUpdateSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
-    created_at = serializers.DateTimeField(read_only=True)
+    id = serializers.IntegerField(required=False, read_only=True)
+    created_at = serializers.DateTimeField(required=False, read_only=True)
     name = serializers.CharField(max_length=256, required=False)
     publish_date = serializers.DateField("%d.%m.%Y", required=False)
     archived = serializers.BooleanField(required=False)
     authors = serializers.PrimaryKeyRelatedField(many=True, required=False,
                                                  queryset=User.objects.filter(role=User.ROLES.AUTHOR.value))
+    comment_set = BookCommentSerializer(many=True, required=False, read_only=True)
 
     def validate(self, data):
         if not data:
