@@ -8,7 +8,6 @@ from api.v1.models.token import Token
 from api.v1.models.user import User
 from api.v1.serializers.auth import RegisterUserSerializer, LoginUserSerializer, RefreshUserSerializer
 from api.v1.services.base import BaseService
-from api.v1.services.misc import generate_code_from_email_and_password
 from api.v1.token import AccessJWToken, RefreshJWToken
 
 
@@ -51,27 +50,13 @@ class AuthService(BaseService):
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_400_BAD_REQUEST}
 
-        code = generate_code_from_email_and_password(serializer.validated_data["email"], self.request.data["password"])
-
-        if not (received_code := self.request.data.get("code", None)):
-            send.delay("Код подтверждения",
-                       f"Ваш код подтверждения: {code}",
-                       serializer.validated_data["email"])
-            return {"detail": "Waiting code",
-                    "status": StatusValues.SUCCESS.value,
-                    "status_code": status.HTTP_200_OK}
-
-        if received_code != code:
-            return {"detail": "Wrong code",
-                    "status": StatusValues.SUCCESS.value,
-                    "status_code": status.HTTP_403_FORBIDDEN}
-
         serializer.save()
 
         access_token = self._create_access_token(serializer.data["id"])
         refresh_token = self._create_refresh_token(serializer.data["id"])
-        send.delay("Успешная регистрация",
-                   f"Вы успешно зарегистрировались!",
+        send.delay("Подтверждение регистрации",
+                   f"Для подтвреждения регистрации перейдите по ссылке:\n"
+                   f"http://{self.request.META['HTTP_HOST']}/api/v1/confirm/{serializer.data['id']}",
                    serializer.validated_data["email"])
         return {"detail": {"id": serializer.data["id"],
                            "email": serializer.data["email"],
@@ -81,6 +66,20 @@ class AuthService(BaseService):
                            "refresh_token": refresh_token},
                 "status": StatusValues.SUCCESS.value,
                 "status_code": status.HTTP_201_CREATED}
+
+    def confirm(self) -> dict:
+        code = self.request.parser_context.get("kwargs").get("code")
+        try:
+            user = User.objects.get(id=code)
+        except User.DoesNotExist:
+            return {"detail": "User not found",
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_404_NOT_FOUND}
+        user.is_active = True
+        user.save()
+        return {"detail": "Account activated",
+                "status": StatusValues.SUCCESS.value,
+                "status_code": status.HTTP_200_OK}
 
     def login(self) -> dict:
         serializer = LoginUserSerializer(data=self.request.data)

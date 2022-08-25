@@ -6,6 +6,13 @@ from api.v1.models.user import User
 from api.v1.services.auth import AuthService
 
 
+class ConfirmRegisterView(APIView):
+    def get(self, request: Request, *args, **kwargs):
+        auth = AuthService(request)
+        result = auth.confirm()
+        return Response(result, status=result["status_code"])
+
+
 class RegisterUserView(APIView):
     def post(self, request: Request):
         auth = AuthService(request)
