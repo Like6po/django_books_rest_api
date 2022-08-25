@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from api.v1.models.book import Book
 from api.v1.models.comment import Comment
+from api.v1.models.confirm_code import ConfirmCode
 from api.v1.models.token import Token
 from api.v1.models.user import User
 
@@ -34,3 +35,8 @@ class CommentAdmin(admin.ModelAdmin):
 @admin.register(Token)
 class TokenAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(ConfirmCode)
+class ConfirmCodeAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "created_at", "is_active")
