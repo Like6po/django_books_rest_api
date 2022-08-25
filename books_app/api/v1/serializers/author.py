@@ -22,6 +22,8 @@ class AuthorsSerializer(serializers.Serializer):
     book_set = AuthorBooksSerializer(many=True, read_only=True)
 
     def create(self, validated_data):
+        if User.objects.filter(email=validated_data.get("email")).exists():
+            raise serializers.ValidationError("Email exists")
         author = User.objects.create(first_name=validated_data.get("first_name"),
                                      second_name=validated_data.get("second_name"),
                                      patronymic=validated_data.get("patronymic", None),

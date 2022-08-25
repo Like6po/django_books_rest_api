@@ -1,57 +1,44 @@
-from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from api.v1.models.book import Book
-from api.v1.serializers.book import BooksSerializer, BookSerializer
+from api.v1.services.book import BookService
 
 
 class BooksView(ListCreateAPIView):
-    queryset = Book.objects.all()
-    serializer_class = BooksSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        return self.queryset.filter(archived=False)
+    def get(self, request: Request, *args, **kwargs):
+        book = BookService(request)
+        result = book.get_all()
+        return Response(result, status=result["status_code"])
 
     def create(self, request: Request, *args, **kwargs):
-        if not (request.user.is_author or request.user.is_admin):
-            return Response({"detail": "Users can't add books"}, status=status.HTTP_403_FORBIDDEN)
-        serializer = self.get_serializer(data=request.data,
-                                         context={'user': request.user} if request.user.is_author else {})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+        book = BookService(request)
+        result = book.create()
+        return Response(result, status=result["status_code"])
 
 
 class BookView(RetrieveUpdateDestroyAPIView):
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_object(self):
-        queryset = self.get_queryset()
-        return get_object_or_404(queryset, id=self.kwargs["book_id"])
+    def get(self, request: Request, *args, **kwargs):
+        book = BookService(request)
+        result = book.get_one()
+        return Response(result, status=result["status_code"])
 
     def delete(self, request: Request, *args, **kwargs):
-        if not (request.user.is_author or request.user.is_admin):
-            return Response({"detail": "Users can't delete books"}, status=status.HTTP_403_FORBIDDEN)
-        if not (request.user.is_admin or request.user in self.get_object().authors.all()):
-            return Response({"detail": "You can't delete this book"}, status=status.HTTP_403_FORBIDDEN)
-        return super().delete(request, *args, **kwargs)
+        book = BookService(request)
+        result = book.delete()
+        return Response(result, status=result["status_code"])
 
     def update(self, request, *args, **kwargs):
-        if not (request.user.is_author or request.user.is_admin):
-            return Response({"detail": "Users can't edit books"}, status=status.HTTP_403_FORBIDDEN)
-        if not (request.user.is_admin or request.user in self.get_object().authors.all()):
-            return Response({"detail": "You can't edit this book"}, status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, *args, **kwargs)
+        book = BookService(request)
+        result = book.update()
+        return Response(result, status=result["status_code"])
 
     def patch(self, request: Request, *args, **kwargs):
-        if not (request.user.is_author or request.user.is_admin):
-            return Response({"detail": "Users can't edit books"}, status=status.HTTP_403_FORBIDDEN)
-        if not (request.user.is_admin or request.user in self.get_object().authors.all()):
-            return Response({"detail": "You can't edit this book"}, status=status.HTTP_403_FORBIDDEN)
-        return super().patch(request, *args, **kwargs)
+        book = BookService(request)
+        result = book.update(partial=True)
+        return Response(result, status=result["status_code"])
