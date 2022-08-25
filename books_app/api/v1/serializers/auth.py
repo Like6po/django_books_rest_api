@@ -13,6 +13,7 @@ class RegisterUserSerializer(serializers.Serializer):
     second_name = serializers.CharField(max_length=128)
     email = serializers.EmailField()
     password = serializers.CharField(min_length=6, write_only=True)
+    code = serializers.CharField(min_length=6, max_length=6, required=False, write_only=True)
 
     def validate(self, data):
         try:

@@ -1,3 +1,5 @@
+from django.conf.global_settings import SECRET_KEY
+
 from api.v1.consts import StatusValues
 
 
@@ -22,3 +24,7 @@ def pass_exception_http_500(func):
                     'status_code': 500}
 
     return wrapper
+
+
+def generate_code_from_email_and_password(email: str, password: str, len_code: int = 6) -> str:
+    return (str(int.from_bytes((email + password).encode(), 'little')) + SECRET_KEY)[:len_code]

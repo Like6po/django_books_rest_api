@@ -11,6 +11,22 @@ services:
     env_file:
       - ".env"
 
+  redis:
+    image: redis:7.0
+    container_name: redis
+    expose:
+      - 6379
+
+  celery:
+    build: ./books_app
+    command: celery -A api.celery worker -l info
+    volumes:
+      - ./books_app/:/usr/src/app/
+    env_file:
+      - ".env"
+    depends_on:
+      - redis
+
   django:
     container_name: django
     build: ./books_app
@@ -24,3 +40,4 @@ services:
       - ".env"
     depends_on:
       - postgres
+      - redis

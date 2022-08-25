@@ -2,11 +2,13 @@ from typing import Union
 
 from rest_framework import status
 
+from api.tasks import send
 from api.v1.consts import StatusValues
 from api.v1.models.token import Token
 from api.v1.models.user import User
 from api.v1.serializers.auth import RegisterUserSerializer, LoginUserSerializer, RefreshUserSerializer
 from api.v1.services.base import BaseService
+from api.v1.services.misc import generate_code_from_email_and_password
 from api.v1.token import AccessJWToken, RefreshJWToken
 
 
@@ -48,11 +50,29 @@ class AuthService(BaseService):
             return {"detail": serializer.errors,
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_400_BAD_REQUEST}
+
+        code = generate_code_from_email_and_password(serializer.validated_data["email"], self.request.data["password"])
+
+        if not (received_code := self.request.data.get("code", None)):
+            send.delay("Код подтверждения",
+                       f"Ваш код подтверждения: {code}",
+                       serializer.validated_data["email"])
+            return {"detail": "Waiting code",
+                    "status": StatusValues.SUCCESS.value,
+                    "status_code": status.HTTP_200_OK}
+
+        if received_code != code:
+            return {"detail": "Wrong code",
+                    "status": StatusValues.SUCCESS.value,
+                    "status_code": status.HTTP_403_FORBIDDEN}
+
         serializer.save()
 
         access_token = self._create_access_token(serializer.data["id"])
         refresh_token = self._create_refresh_token(serializer.data["id"])
-
+        send.delay("Успешная регистрация",
+                   f"Вы успешно зарегистрировались!",
+                   serializer.validated_data["email"])
         return {"detail": {"id": serializer.data["id"],
                            "email": serializer.data["email"],
                            "first_name": serializer.data["first_name"],

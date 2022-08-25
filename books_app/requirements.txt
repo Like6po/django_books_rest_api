@@ -4,3 +4,5 @@ djangorestframework
 python-jose == 3.3.0
 pydantic==1.9.2
 bcrypt
+celery==5.2.7
+redis==4.3.4
