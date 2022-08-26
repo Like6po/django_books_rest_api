@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import status
 
 from api.v1.consts import StatusValues
@@ -8,7 +9,17 @@ from api.v1.services.base import BaseService
 
 class BookService(BaseService):
     def get_all(self) -> dict:
-        serializer = BooksSerializer(instance=Book.objects.filter(archived=False), many=True)
+        search_name = self.request.GET.get("name", None)
+        search_author = self.request.GET.get("author", None)
+        books = Book.objects.filter(archived=False)
+        if search_name:
+            books = books.filter(name__contains=search_name)
+        if search_author:
+            books = books.filter(
+                Q(authors__first_name__contains=search_author) |
+                Q(authors__second_name__contains=search_author) |
+                Q(authors__patronymic__contains=search_author))
+        serializer = BooksSerializer(instance=books, many=True)
         return {"detail": {"books": serializer.data},
                 "status": StatusValues.SUCCESS.value,
                 "status_code": status.HTTP_200_OK}

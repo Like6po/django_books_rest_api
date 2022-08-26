@@ -9,8 +9,19 @@ from api.v1.services.base import BaseService
 
 class CommentService(BaseService):
     def get_all(self) -> dict:
+
+        comments = Comment.objects.filter(book_id=self.request.parser_context.get("kwargs").get("book_id"))
+
+        created_at_min = self.request.GET.get("created_at_min", None)
+        created_at_max = self.request.GET.get("created_at_max", None)
+
+        if created_at_min:
+            comments = comments.filter(created_at__lt=created_at_max)
+        if created_at_max:
+            comments = comments.filter(created_at__gt=created_at_min)
+
         serializer = CommentsSerializer(
-            instance=Comment.objects.filter(book_id=self.request.parser_context.get("kwargs").get("book_id")),
+            instance=comments,
             many=True)
         return {"detail": {"comments": serializer.data},
                 "status": StatusValues.SUCCESS.value,
