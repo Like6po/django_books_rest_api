@@ -13,6 +13,20 @@ class ConfirmRegisterView(APIView):
         return Response(result, status=result["status_code"])
 
 
+class RecoveryUserView(APIView):
+    def post(self, request: Request):
+        auth = AuthService(request)
+        result = auth.recovery()
+        return Response(result, status=result["status_code"])
+
+
+class RecoveryUserChangePasswordView(APIView):
+    def post(self, request: Request, *args, **kwargs):
+        auth = AuthService(request)
+        result = auth.recovery_change_password()
+        return Response(result, status=result["status_code"])
+
+
 class RegisterUserView(APIView):
     def post(self, request: Request):
         auth = AuthService(request)

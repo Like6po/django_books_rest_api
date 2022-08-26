@@ -8,6 +8,8 @@ urlpatterns = [
     path('confirm/<str:code>', auth.ConfirmRegisterView.as_view()),
     path('login', auth.LoginView.as_view()),
     path('refresh', auth.RefreshView.as_view()),
+    path('recovery', auth.RecoveryUserView.as_view()),
+    path('recovery/<str:code>', auth.RecoveryUserChangePasswordView.as_view()),
     path('authors', author.AuthorsView.as_view()),
     path('authors/<int:author_id>', author.AuthorView.as_view()),
     path('books', book.BooksView.as_view()),

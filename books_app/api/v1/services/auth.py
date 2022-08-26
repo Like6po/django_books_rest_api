@@ -1,14 +1,17 @@
 import datetime
 from typing import Union
 
+import bcrypt
 from rest_framework import status
 
 from api.tasks import send
 from api.v1.consts import StatusValues
 from api.v1.models.confirm_code import ConfirmCode
+from api.v1.models.recovery_code import RecoveryCode
 from api.v1.models.token import Token
 from api.v1.models.user import User
-from api.v1.serializers.auth import RegisterUserSerializer, LoginUserSerializer, RefreshUserSerializer
+from api.v1.serializers.auth import RegisterUserSerializer, LoginUserSerializer, RefreshUserSerializer, \
+    RecoveryUserSerializer, ChangePasswordUserSerivalizer
 from api.v1.services.base import BaseService
 from api.v1.token import AccessJWToken, RefreshJWToken
 
@@ -82,7 +85,7 @@ class AuthService(BaseService):
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_400_BAD_REQUEST}
 
-        if not (datetime.datetime.utcnow().replace(tzinfo=None) - code.created_at.replace(tzinfo=None) < \
+        if not (datetime.datetime.utcnow().replace(tzinfo=None) - code.created_at.replace(tzinfo=None) <
                 datetime.timedelta(minutes=5) and code.is_active):
             return {"detail": "Link not valid",
                     "status": StatusValues.FAILED.value,
@@ -96,6 +99,56 @@ class AuthService(BaseService):
                    code.user.email)
 
         return {"detail": "Account activated",
+                "status": StatusValues.SUCCESS.value,
+                "status_code": status.HTTP_200_OK}
+
+    def recovery(self) -> dict:
+        serializer = RecoveryUserSerializer(data=self.request.data)
+        if not serializer.is_valid():
+            return {"detail": serializer.errors,
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_400_BAD_REQUEST}
+
+        recovery_code = RecoveryCode.objects.create(user=serializer.user)
+
+        send.delay("Восстановление аккаунта",
+                   "Ваш код восстановления:\n"
+                   f"{recovery_code.id}",
+                   serializer.validated_data["email"])
+
+        return {"detail": "Waiting password",
+                "status": StatusValues.SUCCESS.value,
+                "status_code": status.HTTP_200_OK}
+
+    def recovery_change_password(self) -> dict:
+        serializer = ChangePasswordUserSerivalizer(data=self.request.data)
+        if not serializer.is_valid():
+            return {"detail": serializer.errors,
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_400_BAD_REQUEST}
+        code = self.request.parser_context.get("kwargs").get("code")
+        try:
+            recovery_code = RecoveryCode.objects.get(id=code)
+        except RecoveryCode.DoesNotExist:
+            return {"detail": "Link not valid",
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_400_BAD_REQUEST}
+        if not (datetime.datetime.utcnow().replace(tzinfo=None) - recovery_code.created_at.replace(tzinfo=None) <
+                datetime.timedelta(minutes=5) and recovery_code.is_active):
+            return {"detail": "Link not valid",
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_400_BAD_REQUEST}
+
+        recovery_code.user.password_hash = bcrypt.hashpw(serializer.validated_data["password"].encode('utf-8'),
+                                                         bcrypt.gensalt()).decode("utf-8")
+        recovery_code.user.save()
+        recovery_code.delete()
+
+        send.delay("Восстановление аккаунта",
+                   "Ваш пароль успешно изменен",
+                   recovery_code.user.email)
+
+        return {"detail": "Password changed",
                 "status": StatusValues.SUCCESS.value,
                 "status_code": status.HTTP_200_OK}
 

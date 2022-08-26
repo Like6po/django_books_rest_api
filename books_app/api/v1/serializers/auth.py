@@ -59,3 +59,19 @@ class RefreshUserSerializer(serializers.Serializer):
             return serializers.ValidationError("Refresh token invalid")
         self.token = token
         return data
+
+
+class RecoveryUserSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate(self, data):
+        try:
+            user = User.objects.get(email=data["email"])
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User with this email not exists")
+        self.user = user
+        return data
+
+
+class ChangePasswordUserSerivalizer(serializers.Serializer):
+    password = serializers.CharField(min_length=6, write_only=True)
