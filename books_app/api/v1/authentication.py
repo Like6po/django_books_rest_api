@@ -21,6 +21,8 @@ class JWTAuthentication(BasicAuthentication):
             user = User.objects.get(id=token.get("sub"))
         except User.DoesNotExist:
             return None
+        if not user.is_active:
+            return None
         return user, token
 
     def get_token_header(self, request) -> str:

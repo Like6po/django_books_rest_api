@@ -21,6 +21,7 @@ class User(models.Model):
     email = models.EmailField("Почта", null=True, default=None)
     password_hash = models.CharField("Хеш пароля", max_length=256)
     role = models.IntegerField("Роль", choices=ROLES.choices, default=ROLES.USER.value)
+    is_active = models.BooleanField("Активен", default=False)
 
     def full_name(self):
         return f"{self.first_name} {self.second_name}"

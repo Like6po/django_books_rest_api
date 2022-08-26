@@ -1,8 +1,11 @@
+import datetime
 from typing import Union
 
 from rest_framework import status
 
+from api.tasks import send
 from api.v1.consts import StatusValues
+from api.v1.models.confirm_code import ConfirmCode
 from api.v1.models.token import Token
 from api.v1.models.user import User
 from api.v1.serializers.auth import RegisterUserSerializer, LoginUserSerializer, RefreshUserSerializer
@@ -48,10 +51,18 @@ class AuthService(BaseService):
             return {"detail": serializer.errors,
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_400_BAD_REQUEST}
+
         serializer.save()
 
         access_token = self._create_access_token(serializer.data["id"])
         refresh_token = self._create_refresh_token(serializer.data["id"])
+
+        confirm_code = ConfirmCode.objects.create(user_id=serializer.data["id"])
+
+        send.delay("Подтверждение регистрации",
+                   f"Для подтвреждения регистрации перейдите по ссылке:\n"
+                   f"http://{self.request.META['HTTP_HOST']}/api/v1/confirm/{confirm_code.id}",
+                   serializer.validated_data["email"])
 
         return {"detail": {"id": serializer.data["id"],
                            "email": serializer.data["email"],
@@ -61,6 +72,32 @@ class AuthService(BaseService):
                            "refresh_token": refresh_token},
                 "status": StatusValues.SUCCESS.value,
                 "status_code": status.HTTP_201_CREATED}
+
+    def confirm(self) -> dict:
+        code = self.request.parser_context.get("kwargs").get("code")
+        try:
+            code = ConfirmCode.objects.get(id=code)
+        except ConfirmCode.DoesNotExist:
+            return {"detail": "Link not valid",
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_400_BAD_REQUEST}
+
+        if not (datetime.datetime.utcnow().replace(tzinfo=None) - code.created_at.replace(tzinfo=None) < \
+                datetime.timedelta(minutes=5) and code.is_active):
+            return {"detail": "Link not valid",
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_400_BAD_REQUEST}
+
+        code.user.is_active = True
+        code.user.save()
+        code.delete()
+        send.delay("Подтверждение регистрации",
+                   f"Аккаунт успешно активирован!",
+                   code.user.email)
+
+        return {"detail": "Account activated",
+                "status": StatusValues.SUCCESS.value,
+                "status_code": status.HTTP_200_OK}
 
     def login(self) -> dict:
         serializer = LoginUserSerializer(data=self.request.data)
