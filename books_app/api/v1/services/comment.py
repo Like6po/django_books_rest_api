@@ -23,7 +23,7 @@ class CommentService(BaseService):
         serializer = CommentsSerializer(
             instance=comments,
             many=True)
-        return {"detail": {"comments": serializer.data},
+        return {"detail": serializer.data,
                 "status": StatusValues.SUCCESS.value,
                 "status_code": status.HTTP_200_OK}
 

@@ -20,7 +20,7 @@ class BookService(BaseService):
                 Q(authors__second_name__contains=search_author) |
                 Q(authors__patronymic__contains=search_author))
         serializer = BooksSerializer(instance=books, many=True)
-        return {"detail": {"books": serializer.data},
+        return {"detail": serializer.data,
                 "status": StatusValues.SUCCESS.value,
                 "status_code": status.HTTP_200_OK}
 

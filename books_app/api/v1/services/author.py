@@ -9,7 +9,7 @@ from api.v1.services.base import BaseService
 class AuthorService(BaseService):
     def get_all(self) -> dict:
         serializer = AuthorsSerializer(instance=User.objects.filter(role=User.ROLES.AUTHOR.value), many=True)
-        return {"detail": {"authors": serializer.data},
+        return {"detail": serializer.data,
                 "status": StatusValues.SUCCESS.value,
                 "status_code": status.HTTP_200_OK}
 
