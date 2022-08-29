@@ -15,11 +15,10 @@ class RegisterUserSerializer(serializers.Serializer):
     password = serializers.CharField(min_length=6, write_only=True)
 
     def validate(self, data):
-        try:
-            User.objects.get(email=data["email"])
+        user = User.objects.filter(email=data["email"]).first()
+        if user:
             raise serializers.ValidationError("Email exists")
-        except User.DoesNotExist:
-            return data
+        return data
 
     def create(self, validated_data):
         user = User.objects.create(first_name=validated_data["first_name"],
@@ -37,9 +36,8 @@ class LoginUserSerializer(serializers.Serializer):
     password = serializers.CharField()
 
     def validate(self, data):
-        try:
-            current_author = User.objects.get(email=data["email"])
-        except User.DoesNotExist:
+        current_author = User.objects.filter(email=data["email"]).first()
+        if not current_author:
             raise serializers.ValidationError("Login incorrect")
         try:
             if bcrypt.checkpw(data["password"].encode('utf-8'), current_author.password_hash.encode('utf-8')):
@@ -65,9 +63,8 @@ class RecoveryUserSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     def validate(self, data):
-        try:
-            user = User.objects.get(email=data["email"])
-        except User.DoesNotExist:
+        user = User.objects.filter(email=data["email"]).first()
+        if not user:
             raise serializers.ValidationError("User with this email not exists")
         self.user = user
         return data

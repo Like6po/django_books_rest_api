@@ -28,9 +28,9 @@ class CommentService(BaseService):
                 "status_code": status.HTTP_200_OK}
 
     def create(self) -> dict:
-        try:
-            book = Book.objects.get(id=self.request.parser_context.get("kwargs").get("book_id"))
-        except Book.DoesNotExist:
+
+        book = Book.objects.filter(id=self.request.parser_context.get("kwargs").get("book_id")).first()
+        if not book:
             return {"detail": "Book not found",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_404_NOT_FOUND}
@@ -46,9 +46,9 @@ class CommentService(BaseService):
                 "status_code": status.HTTP_201_CREATED}
 
     def get_one(self) -> dict:
-        try:
-            comment = Comment.objects.get(id=self.request.parser_context.get("kwargs").get("comment_id"))
-        except Comment.DoesNotExist:
+
+        comment = Comment.objects.filter(id=self.request.parser_context.get("kwargs").get("comment_id")).first()
+        if not comment:
             return {"detail": "Comment not found",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_404_NOT_FOUND}
@@ -58,9 +58,9 @@ class CommentService(BaseService):
                 "status_code": status.HTTP_200_OK}
 
     def delete(self) -> dict:
-        try:
-            comment = Comment.objects.get(id=self.request.parser_context.get("kwargs").get("comment_id"))
-        except Comment.DoesNotExist:
+
+        comment = Comment.objects.filter(id=self.request.parser_context.get("kwargs").get("comment_id")).first()
+        if not comment:
             return {"detail": "Comment not found",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_404_NOT_FOUND}
@@ -77,9 +77,9 @@ class CommentService(BaseService):
                 "status_code": status.HTTP_204_NO_CONTENT}
 
     def update(self, partial: bool = False) -> dict:
-        try:
-            comment = Comment.objects.get(id=self.request.parser_context.get("kwargs").get("comment_id"))
-        except Comment.DoesNotExist:
+
+        comment = Comment.objects.filter(id=self.request.parser_context.get("kwargs").get("comment_id")).first()
+        if not comment:
             return {"detail": "Comment not found",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_404_NOT_FOUND}

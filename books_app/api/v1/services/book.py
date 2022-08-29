@@ -42,9 +42,9 @@ class BookService(BaseService):
                 "status_code": status.HTTP_201_CREATED}
 
     def get_one(self) -> dict:
-        try:
-            book = Book.objects.get(id=self.request.parser_context.get("kwargs").get("book_id"))
-        except Book.DoesNotExist:
+
+        book = Book.objects.filter(id=self.request.parser_context.get("kwargs").get("book_id")).first()
+        if not book:
             return {"detail": "Book not found",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_404_NOT_FOUND}
@@ -58,9 +58,9 @@ class BookService(BaseService):
             return {"detail": "Users can't delete books",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_403_FORBIDDEN}
-        try:
-            book = Book.objects.get(id=self.request.parser_context.get("kwargs").get("book_id"))
-        except Book.DoesNotExist:
+
+        book = Book.objects.filter(id=self.request.parser_context.get("kwargs").get("book_id")).first()
+        if not book:
             return {"detail": "Book not found",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_404_NOT_FOUND}
@@ -77,9 +77,9 @@ class BookService(BaseService):
             return {"detail": "Users can't edit books",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_403_FORBIDDEN}
-        try:
-            book = Book.objects.get(id=self.request.parser_context.get("kwargs").get("book_id"))
-        except Book.DoesNotExist:
+
+        book = Book.objects.filter(id=self.request.parser_context.get("kwargs").get("book_id")).first()
+        if not book:
             return {"detail": "Book not found",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_404_NOT_FOUND}

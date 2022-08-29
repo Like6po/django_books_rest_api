@@ -78,9 +78,8 @@ class AuthService(BaseService):
 
     def confirm(self) -> dict:
         code = self.request.parser_context.get("kwargs").get("code")
-        try:
-            code = ConfirmCode.objects.get(id=code)
-        except ConfirmCode.DoesNotExist:
+        code = ConfirmCode.objects.filter(id=code).first()
+        if not code:
             return {"detail": "Link not valid",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_400_BAD_REQUEST}
@@ -127,9 +126,9 @@ class AuthService(BaseService):
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_400_BAD_REQUEST}
         code = self.request.parser_context.get("kwargs").get("code")
-        try:
-            recovery_code = RecoveryCode.objects.get(id=code)
-        except RecoveryCode.DoesNotExist:
+
+        recovery_code = RecoveryCode.objects.filter(id=code).first()
+        if not recovery_code:
             return {"detail": "Link not valid",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_400_BAD_REQUEST}
@@ -158,9 +157,9 @@ class AuthService(BaseService):
             return {"detail": serializer.errors,
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_400_BAD_REQUEST}
-        try:
-            user = User.objects.get(email=serializer.validated_data["email"])
-        except User.DoesNotExist:
+
+        user = User.objects.filter(email=serializer.validated_data["email"]).first()
+        if not user:
             return {"detail": "User not found",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_404_NOT_FOUND}
@@ -180,15 +179,15 @@ class AuthService(BaseService):
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_400_BAD_REQUEST}
         refresh_token = serializer.validated_data["refresh_token"]
-        try:
-            refresh_token_db = Token.objects.get(token=refresh_token)
-            refresh_token_db.delete()
-            if not refresh_token_db.is_active:
-                return {"detail": "Token is deactivated",
-                        "status": StatusValues.FAILED.value,
-                        "status_code": status.HTTP_404_NOT_FOUND}
-        except Token.DoesNotExist:
+
+        refresh_token_db = Token.objects.filter(token=refresh_token).first()
+        if not refresh_token_db:
             return {"detail": "Token don't exists",
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_404_NOT_FOUND}
+        refresh_token_db.delete()
+        if not refresh_token_db.is_active:
+            return {"detail": "Token is deactivated",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_404_NOT_FOUND}
 

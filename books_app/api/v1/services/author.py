@@ -34,10 +34,10 @@ class AuthorService(BaseService):
                 "status_code": status.HTTP_201_CREATED}
 
     def get_one(self) -> dict:
-        try:
-            author = User.objects.get(id=self.request.parser_context.get("kwargs").get("author_id"),
-                                      role=User.ROLES.AUTHOR.value)
-        except User.DoesNotExist:
+
+        author = User.objects.filter(id=self.request.parser_context.get("kwargs").get("author_id"),
+                                     role=User.ROLES.AUTHOR.value).first()
+        if not author:
             return {"detail": "Author not found",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_404_NOT_FOUND}
@@ -55,10 +55,10 @@ class AuthorService(BaseService):
             return {"detail": "Cant delete self account",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_403_FORBIDDEN}
-        try:
-            author = User.objects.get(id=self.request.parser_context.get("kwargs").get("author_id"),
-                                      role=User.ROLES.AUTHOR.value)
-        except User.DoesNotExist:
+
+        author = User.objects.filter(id=self.request.parser_context.get("kwargs").get("author_id"),
+                                     role=User.ROLES.AUTHOR.value).first()
+        if not author:
             return {"detail": "Author not found",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_404_NOT_FOUND}
@@ -72,10 +72,10 @@ class AuthorService(BaseService):
             return {"detail": "Only admins can change another accounts",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_403_FORBIDDEN}
-        try:
-            author = User.objects.get(id=self.request.parser_context.get("kwargs").get("author_id"),
-                                      role=User.ROLES.AUTHOR.value)
-        except User.DoesNotExist:
+
+        author = User.objects.filter(id=self.request.parser_context.get("kwargs").get("author_id"),
+                                     role=User.ROLES.AUTHOR.value).first()
+        if not author:
             return {"detail": "Author not found",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_404_NOT_FOUND}
