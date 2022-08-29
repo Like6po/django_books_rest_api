@@ -18,7 +18,8 @@ class Migration(migrations.Migration):
                 ('first_name', models.CharField(max_length=128, verbose_name='Имя')),
                 ('second_name', models.CharField(max_length=128, verbose_name='Фамилия')),
                 ('password_hash', models.CharField(max_length=256, verbose_name='Хеш пароля')),
-                ('role', models.IntegerField(choices=[(0, 'Пользователь'), (1, 'Автор'), (2, 'Администратор')], verbose_name='Роль')),
+                ('role', models.IntegerField(choices=[(0, 'Пользователь'), (1, 'Автор'), (2, 'Администратор')],
+                                             verbose_name='Роль')),
             ],
             options={
                 'verbose_name': 'Пользователь',

@@ -95,7 +95,7 @@ class AuthService(BaseService):
         code.user.save()
         code.delete()
         send.delay("Подтверждение регистрации",
-                   f"Аккаунт успешно активирован!",
+                   "Аккаунт успешно активирован!",
                    code.user.email)
 
         return {"detail": "Account activated",

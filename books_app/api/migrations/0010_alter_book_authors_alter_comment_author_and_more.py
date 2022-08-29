@@ -29,7 +29,9 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='user',
             name='role',
-            field=models.IntegerField(choices=[(0, 'Пользователь'), (1, 'Автор'), (2, 'Администратор')], default=0, verbose_name='Роль'),
+            field=models.IntegerField(choices=[(0, 'Пользователь'), (1, 'Автор'), (2, 'Администратор')],
+                                      default=0,
+                                      verbose_name='Роль'),
         ),
         migrations.DeleteModel(
             name='Author',

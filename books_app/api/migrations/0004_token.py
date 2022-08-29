@@ -16,7 +16,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('uuid', models.UUIDField(verbose_name='UUID')),
-                ('type', models.SmallIntegerField(choices=[(0, 'access'), (1, 'refresh')], default=0, verbose_name='Тип (0 - acccess/ 1 - refresh)')),
+                ('type', models.SmallIntegerField(choices=[(0, 'access'), (1, 'refresh')],
+                                                  default=0, verbose_name='Тип (0 - acccess/ 1 - refresh)')),
                 ('is_active', models.BooleanField(default=True, verbose_name='Активен?')),
                 ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.author')),
             ],

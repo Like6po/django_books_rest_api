@@ -15,7 +15,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='RecoveryCode',
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, primary_key=True, serialize=False, verbose_name='Идентификатор')),
+                ('id', models.UUIDField(default=uuid.uuid4, primary_key=True,
+                                        serialize=False, verbose_name='Идентификатор')),
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Время регистрации')),
                 ('is_active', models.BooleanField(default=True, verbose_name='Активен ли?')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.user')),
