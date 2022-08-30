@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from api.v1.services.book import BookService
+from api.v1.services.book.book import BookService
 
 
 class BooksView(ListCreateAPIView):

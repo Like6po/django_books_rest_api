@@ -14,6 +14,8 @@ class Book(models.Model):
     publish_date = models.DateField("Дата выпуска")
     archived = models.BooleanField("Архивировано", default=False)
     authors = models.ManyToManyField(to="User", blank=True)
+    category = models.ForeignKey(to="api.BookCategory", on_delete=models.CASCADE, to_field="id",
+                                 default=None, null=True, blank=True)
 
     def __str__(self):
         authors = self.authors.all()

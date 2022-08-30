@@ -1,9 +1,9 @@
 from rest_framework import status
 
 from api.v1.consts import StatusValues
-from api.v1.models.book import Book
-from api.v1.models.comment import Comment
-from api.v1.serializers.comment import CommentsSerializer, CommentSerializer
+from api.v1.models.book.book import Book
+from api.v1.models.book.comment import Comment
+from api.v1.serializers.book.comment import CommentsSerializer, CommentSerializer
 from api.v1.services.base import BaseService
 
 
@@ -77,7 +77,6 @@ class CommentService(BaseService):
                 "status_code": status.HTTP_204_NO_CONTENT}
 
     def update(self, partial: bool = False) -> dict:
-
         comment = Comment.objects.filter(id=self.request.parser_context.get("kwargs").get("comment_id")).first()
         if not comment:
             return {"detail": "Comment not found",

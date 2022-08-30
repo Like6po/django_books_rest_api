@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from api.v1.models.comment import Comment
-from api.v1.serializers.book import BooksSerializer
+from api.v1.models.book.comment import Comment
+from api.v1.serializers.book.book import BooksSerializer
 
 
 class CommentAuthorsSerializer(serializers.Serializer):
