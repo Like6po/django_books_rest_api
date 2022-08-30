@@ -54,7 +54,7 @@ class RefreshUserSerializer(serializers.Serializer):
         try:
             token = RefreshJWToken(data["refresh_token"])
         except ValueError:
-            return serializers.ValidationError("Refresh token invalid")
+            raise serializers.ValidationError("Refresh token invalid")
         self.token = token
         return data
 

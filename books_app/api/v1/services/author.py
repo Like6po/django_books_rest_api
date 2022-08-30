@@ -51,7 +51,8 @@ class AuthorService(BaseService):
             return {"detail": "Only admins can delete accounts",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_403_FORBIDDEN}
-        if self.request.user.id == self.request.query_params["author_id"]:
+
+        if self.request.user.id == self.request.parser_context.get("kwargs").get("author_id"):
             return {"detail": "Cant delete self account",
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_403_FORBIDDEN}

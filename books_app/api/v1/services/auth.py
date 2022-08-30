@@ -2,6 +2,7 @@ import datetime
 from typing import Union
 
 import bcrypt
+import django.core.exceptions
 from rest_framework import status
 
 from api.tasks import send
@@ -56,7 +57,6 @@ class AuthService(BaseService):
                     "status_code": status.HTTP_400_BAD_REQUEST}
 
         serializer.save()
-
         access_token = self._create_access_token(serializer.data["id"])
         refresh_token = self._create_refresh_token(serializer.data["id"])
 
@@ -64,7 +64,7 @@ class AuthService(BaseService):
 
         send.delay("Подтверждение регистрации",
                    f"Для подтвреждения регистрации перейдите по ссылке:\n"
-                   f"http://{self.request.META['HTTP_HOST']}/api/v1/confirm/{confirm_code.id}",
+                   f"http://{self.request.META.get('HTTP_HOST', 'localhost:8000')}/api/v1/confirm/{confirm_code.id}",
                    serializer.validated_data["email"])
 
         return {"detail": {"id": serializer.data["id"],
@@ -126,8 +126,12 @@ class AuthService(BaseService):
                     "status": StatusValues.FAILED.value,
                     "status_code": status.HTTP_400_BAD_REQUEST}
         code = self.request.parser_context.get("kwargs").get("code")
-
-        recovery_code = RecoveryCode.objects.filter(id=code).first()
+        try:
+            recovery_code = RecoveryCode.objects.filter(id=code).first()
+        except django.core.exceptions.ValidationError:
+            return {"detail": "Link not valid",
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_400_BAD_REQUEST}
         if not recovery_code:
             return {"detail": "Link not valid",
                     "status": StatusValues.FAILED.value,
