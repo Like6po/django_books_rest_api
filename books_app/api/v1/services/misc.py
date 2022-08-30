@@ -1,4 +1,10 @@
+from typing import Any
+
 from api.v1.consts import StatusValues
+
+
+def value_to_type_or_none(value: Any, value_type: type):
+    return value_type(value) if value else None
 
 
 def decorate_class_methods(decorator):
