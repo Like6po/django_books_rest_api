@@ -1,5 +1,5 @@
 import datetime
-from typing import Union
+from typing import Union, Optional
 
 import bcrypt
 import django.core.exceptions
@@ -23,9 +23,10 @@ class AuthService(BaseService):
         _, access_token = AccessJWToken()(user_identifier=str(subject))
         return access_token
 
-    @staticmethod
-    def _create_refresh_token(subject: Union[int, float]) -> str:
-        _, refresh_token = RefreshJWToken()()
+    def _create_refresh_token(self, subject: Union[int, float], access_token: Optional[str] = None) -> str:
+        if not access_token:
+            access_token = self._create_access_token(subject)
+        _, refresh_token = RefreshJWToken()(access_token)
         Token.objects.create(author_id=str(subject),
                              token=refresh_token)
         return refresh_token

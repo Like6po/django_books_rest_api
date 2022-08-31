@@ -9,8 +9,13 @@ from api.v1.services.base import BaseService
 
 class CommentService(BaseService):
     def get_all(self) -> dict:
+        book = Book.objects.filter(id=self.request.parser_context.get("kwargs").get("book_id")).first()
+        if not book:
+            return {"detail": "Book not found",
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_404_NOT_FOUND}
 
-        comments = Comment.objects.filter(book_id=self.request.parser_context.get("kwargs").get("book_id"))
+        comments = Comment.objects.filter(book=book)
 
         created_at_min = self.request.GET.get("created_at_min", None)
         created_at_max = self.request.GET.get("created_at_max", None)
@@ -46,7 +51,11 @@ class CommentService(BaseService):
                 "status_code": status.HTTP_201_CREATED}
 
     def get_one(self) -> dict:
-
+        book = Book.objects.filter(id=self.request.parser_context.get("kwargs").get("book_id")).first()
+        if not book:
+            return {"detail": "Book not found",
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_404_NOT_FOUND}
         comment = Comment.objects.filter(id=self.request.parser_context.get("kwargs").get("comment_id")).first()
         if not comment:
             return {"detail": "Comment not found",
@@ -58,6 +67,11 @@ class CommentService(BaseService):
                 "status_code": status.HTTP_200_OK}
 
     def delete(self) -> dict:
+        book = Book.objects.filter(id=self.request.parser_context.get("kwargs").get("book_id")).first()
+        if not book:
+            return {"detail": "Book not found",
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_404_NOT_FOUND}
 
         comment = Comment.objects.filter(id=self.request.parser_context.get("kwargs").get("comment_id")).first()
         if not comment:

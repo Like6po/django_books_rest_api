@@ -56,7 +56,7 @@ class JWToken(metaclass=abc.ABCMeta):
         if not self.token:
             return False
         try:
-            payload = jwt.decode(self.token, SECRET_KEY, algorithms=JWT_ALGORITHM)
+            payload = jwt.decode(self.token, SECRET_KEY, algorithms=JWT_ALGORITHM, options={"verify_at_hash": False})
         except ExpiredSignatureError:
             return False
         except JWTError:
@@ -112,7 +112,7 @@ class RefreshJWToken(JWToken):
     type = TokenTypes.REFRESH.value
     lifetime_minutes = JWT_REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60
 
-    def __call__(self):
+    def __call__(self, access_token):
         super().__call__()
-        token = jwt.encode(self.payload, SECRET_KEY, algorithm=JWT_ALGORITHM)
+        token = jwt.encode(self.payload, SECRET_KEY, algorithm=JWT_ALGORITHM, access_token=access_token)
         return self.payload, token

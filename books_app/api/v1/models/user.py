@@ -1,4 +1,9 @@
+from typing import Union, Optional
+
 from django.db import models
+
+from api.v1.models.token import Token
+from api.v1.token import AccessJWToken, RefreshJWToken
 
 
 class User(models.Model):
@@ -50,3 +55,24 @@ class User(models.Model):
     @property
     def is_author(self):
         return self.role == self.ROLES.AUTHOR.value
+
+    @staticmethod
+    def _create_access_token(subject: Union[int, float]) -> str:
+        _, access_token = AccessJWToken()(user_identifier=str(subject))
+        return access_token
+
+    def _create_refresh_token(self, subject: Union[int, float], access_token: Optional[str] = None) -> str:
+        if not access_token:
+            access_token = self._create_access_token(self.id)
+        _, refresh_token = RefreshJWToken()(access_token)
+        Token.objects.create(author_id=str(subject),
+                             token=refresh_token)
+        return refresh_token
+
+    def _generate_jwt_token(self):
+        return self._create_access_token(self.id)
+
+    def _generate_refresh_jwt_token(self, access_token: Optional[str] = None):
+        if not access_token:
+            access_token = self._create_access_token(self.id)
+        return self._create_refresh_token(self.id, access_token)
