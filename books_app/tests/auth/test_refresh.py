@@ -2,11 +2,11 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from tests.base import RegisterFunc
+from tests.base import BaseClientMixin
 
 
 @pytest.mark.django_db
-class TestRefreshView(RegisterFunc):
+class TestRefreshView(BaseClientMixin):
     url = reverse('refresh')
 
     invalid_requests = [
@@ -15,19 +15,14 @@ class TestRefreshView(RegisterFunc):
         {"refresh_token": "some_invalid_value"}
     ]
 
-    def test_valid(self, client):
-        register_data = self.register(client)
-        response = client.post(self.url, {"refresh_token": register_data.get("detail").get("refresh_token")})
-        data = response.json()
+    def test_valid(self, fixture_users_repository):
+        r = fixture_users_repository.user._generate_refresh_jwt_token()
+        response = self.client.post(path=self.url,
+                                    data={"refresh_token": r})
         assert response.status_code == status.HTTP_200_OK
-        assert data.get('status') == 'Success'
-        assert data.get('detail').get('access_token')
-        assert data.get('detail').get('refresh_token')
 
-    def test_invalid(self, client):
-        self.register(client)
+    def test_invalid(self, fixture_users_repository):
         for request in self.invalid_requests:
-            response = client.post(self.url, request)
-            data = response.json()
+            response = self.client.post(path=self.url,
+                                        data=request)
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert data.get('status') == 'Failed'

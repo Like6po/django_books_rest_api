@@ -1,13 +1,12 @@
 import pytest
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
-from tests.base import UnauthorizedTest, RegisterFunc, SetupUserFuncs
+from tests.base import UnauthorizedTestMixin, BaseClientMixin
 
 
 @pytest.mark.django_db
-class TestAuthorGetView(RegisterFunc, UnauthorizedTest, SetupUserFuncs):
+class TestAuthorGetView(BaseClientMixin, UnauthorizedTestMixin):
     url = reverse('authors_detail', kwargs={"author_id": 1})
 
     invalid_kwargs = [
@@ -15,48 +14,28 @@ class TestAuthorGetView(RegisterFunc, UnauthorizedTest, SetupUserFuncs):
         {"author_id": 0}
     ]
 
-    def user_setup(self):
-        self.init_user()
-        self.user_set_active()
-        self.user_set_role_author()
-
-    def test_valid(self, client):
-        data = self.register(client)
-
-        self.user_setup()
-
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION=f"Bearer {data.get('detail').get('access_token')}")
-        response = client.get(reverse('authors_detail', kwargs={"author_id": data.get('detail').get('id')}))
-        data = response.json()
+    def test_author_get_exists_author(self, fixture_users_repository):
+        response = self.client.get(path=reverse(viewname='authors_detail',
+                                                kwargs={"author_id": fixture_users_repository.author.id}),
+                                   Authorization=fixture_users_repository.user)
         assert response.status_code == status.HTTP_200_OK
-        assert data.get('status') == 'Success'
 
-    def test_invalid(self, client):
-        register_data = self.register(client)
-
-        self.user_setup()
-
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION=f"Bearer {register_data.get('detail').get('access_token')}")
-
+    def test_get_not_exists_authors(self, fixture_users_repository):
         for kwargs in self.invalid_kwargs:
-            response = client.get(reverse('authors_detail', kwargs=kwargs))
-            data = response.json()
+            response = self.client.get(path=reverse(viewname='authors_detail',
+                                                    kwargs=kwargs),
+                                       Authorization=fixture_users_repository.user)
             assert response.status_code == status.HTTP_404_NOT_FOUND
-            assert data.get('status') == 'Failed'
-            assert data.get('detail') == 'Author not found'
 
-        self.user_set_role_default()
-        response = client.get(reverse('authors_detail', kwargs={"author_id": register_data.get('detail').get('id')}))
-        data = response.json()
+    def test_get_try_get_user(self, fixture_users_repository):
+        response = self.client.get(path=reverse(viewname='authors_detail',
+                                                kwargs={"author_id": fixture_users_repository.user.id}),
+                                   Authorization=fixture_users_repository.author)
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert data.get('status') == 'Failed'
-        assert data.get('detail') == 'Author not found'
 
 
 @pytest.mark.django_db
-class TestAuthorDeleteView(RegisterFunc, UnauthorizedTest, SetupUserFuncs):
+class TestAuthorDeleteView(BaseClientMixin, UnauthorizedTestMixin):
     url = reverse('authors_detail', kwargs={"author_id": 1})
 
     invalid_kwargs = [
@@ -64,50 +43,28 @@ class TestAuthorDeleteView(RegisterFunc, UnauthorizedTest, SetupUserFuncs):
         {"author_id": 0}
     ]
 
-    def setup_user(self):
-        self.init_user()
-        self.user_set_active()
-        self.user_set_role_admin()
-
-    def test_valid(self, client):
-        register_data = self.register(client)
-
-        self.setup_user()
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION=f"Bearer {register_data.get('detail').get('access_token')}")
-
-        response = client.delete(reverse('authors_detail',
-                                         kwargs={"author_id": register_data.get('detail').get('id')}))
-        data = response.json()
+    def test_delete_self(self, fixture_users_repository):
+        response = self.client.delete(path=reverse(viewname='authors_detail',
+                                                   kwargs={"author_id": fixture_users_repository.admin.id}),
+                                      Authorization=fixture_users_repository.admin)
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert data.get('status') == 'Failed'
-        assert data.get('detail') == 'Cant delete self account'
 
-    def test_invalid(self, client):
-        register_data = self.register(client)
-        self.setup_user()
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION=f"Bearer {register_data.get('detail').get('access_token')}")
-
+    def test_delete_not_exist_users(self, fixture_users_repository):
         for kwargs in self.invalid_kwargs:
-            response = client.delete(reverse('authors_detail', kwargs=kwargs))
-            data = response.json()
+            response = self.client.delete(path=reverse(viewname='authors_detail', kwargs=kwargs),
+                                          Authorization=fixture_users_repository.admin)
             assert response.status_code == status.HTTP_404_NOT_FOUND
-            assert data.get('status') == 'Failed'
-            assert data.get('detail') == 'Author not found'
 
-        self.user_set_role_default()
-
-        response = client.delete(reverse('authors_detail',
-                                         kwargs={"author_id": register_data.get('detail').get('id')}))
-        data = response.json()
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert data.get('status') == 'Failed'
-        assert data.get('detail') == 'Only admins can delete accounts'
+    def test_delete_without_admin_role(self, fixture_users_repository):
+        for authorization in [fixture_users_repository.user, fixture_users_repository.admin]:
+            response = self.client.delete(path=reverse(viewname='authors_detail',
+                                                       kwargs={"author_id": fixture_users_repository.admin.id}),
+                                          Authorization=authorization)
+            assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.django_db
-class TestAuthorUpdateView(RegisterFunc, UnauthorizedTest, SetupUserFuncs):
+class TestAuthorUpdateView(BaseClientMixin, UnauthorizedTestMixin):
     url = reverse('authors_detail', kwargs={"author_id": 1})
 
     valid_requests = [
@@ -131,45 +88,29 @@ class TestAuthorUpdateView(RegisterFunc, UnauthorizedTest, SetupUserFuncs):
         {"author_id": 0}
     ]
 
-    def setup_user(self):
-        self.init_user()
-        self.user_set_active()
-        self.user_set_role_author()
-
-    def test_valid(self, client):
-        register_data = self.register(client)
-        self.setup_user()
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION=f"Bearer {register_data.get('detail').get('access_token')}")
+    def test_update_self(self, fixture_users_repository):
         for request in self.valid_requests:
-            response = client.put(reverse('authors_detail',
-                                          kwargs={"author_id": register_data.get('detail').get('id')}),
-                                  request)
+            response = self.client.put(path=reverse(viewname='authors_detail',
+                                                    kwargs={"author_id": fixture_users_repository.author.id}),
+                                       data=request,
+                                       Authorization=fixture_users_repository.author)
             data = response.json()
             assert response.status_code == status.HTTP_200_OK
             assert data.get('status') == 'Success'
             for key, value in request.items():
                 assert data.get('detail').get(key) == value
 
-    def test_invalid(self, client):
-        register_data = self.register(client)
-        self.setup_user()
-        self.user_set_role_admin()
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION=f"Bearer {register_data.get('detail').get('access_token')}")
-
+    def test_update_not_exist_users(self, fixture_users_repository):
         for kwargs in self.invalid_kwargs:
-            response = client.put(reverse('authors_detail', kwargs=kwargs),
-                                  {})
-            data = response.json()
+            response = self.client.put(path=reverse(viewname='authors_detail', kwargs=kwargs),
+                                       data={},
+                                       Authorization=fixture_users_repository.admin)
             assert response.status_code == status.HTTP_404_NOT_FOUND
-            assert data.get('status') == 'Failed'
-            assert data.get('detail') == 'Author not found'
 
-        self.user_set_role_default()
-        response = client.put(reverse('authors_detail', kwargs=self.invalid_kwargs[0]),
-                              {})
-        data = response.json()
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert data.get('status') == 'Failed'
-        assert data.get('detail') == 'Only admins can change another accounts'
+    def test_update_another_users_without_admin_role(self, fixture_users_repository):
+        for authorization in [fixture_users_repository.user, fixture_users_repository.author]:
+            response = self.client.put(path=reverse(viewname='authors_detail',
+                                                    kwargs=self.invalid_kwargs[0]),
+                                       data={},
+                                       Authorization=authorization)
+            assert response.status_code == status.HTTP_403_FORBIDDEN

@@ -1,0 +1,94 @@
+[
+  {
+    "model": "api.user",
+    "pk": 1,
+    "fields": {
+      "created_at": "2022-08-31 9:00:00",
+      "first_name": "Just",
+      "second_name": "User",
+      "patronymic": null,
+      "email": "test1@gmail.com",
+      "is_active": true,
+      "role": 0,
+      "password_hash": "$2b$12$mOQq2pdK9LbjUm99KKbpWOUJVMDh9ntthuh6E3375wn0CQECrZta2"
+    }
+  },
+  {
+    "model": "api.user",
+    "pk": 2,
+    "fields": {
+      "created_at": "2022-08-31 9:00:00",
+      "first_name": "Just",
+      "second_name": "Author",
+      "patronymic": null,
+      "email": "test2@gmail.com",
+      "is_active": true,
+      "role": 1,
+      "password_hash": "$2b$12$mOQq2pdK9LbjUm99KKbpWOUJVMDh9ntthuh6E3375wn0CQECrZta2"
+    }
+  },
+  {
+    "model": "api.user",
+    "pk": 3,
+    "fields": {
+      "created_at": "2022-08-31 9:00:00",
+      "first_name": "Just",
+      "second_name": "Admin",
+      "patronymic": null,
+      "email": "test3@gmail.com",
+      "is_active": true,
+      "role": 2,
+      "password_hash": "$2b$12$mOQq2pdK9LbjUm99KKbpWOUJVMDh9ntthuh6E3375wn0CQECrZta2"
+    }
+  },
+  {
+    "model": "api.confirmcode",
+    "pk": 1,
+    "fields": {
+      "created_at": "2022-08-31 9:00:00",
+      "user": 1,
+      "is_active": true
+    }
+  },
+  {
+    "model": "api.recoverycode",
+    "pk": 1,
+    "fields": {
+      "created_at": "2022-08-31 9:00:00",
+      "user": 1,
+      "is_active": true
+    }
+  },
+  {
+    "model": "api.bookcategory",
+    "pk": 1,
+    "fields": {
+      "created_at": "2022-08-31 9:00:00",
+      "name": "какой-то жанр"
+    }
+  },
+  {
+    "model": "api.book",
+    "pk": 1,
+    "fields": {
+      "created_at": "2022-08-31 9:00:00",
+      "publish_date": "2022-08-31",
+      "name": "какая-то книга",
+      "archived": false,
+      "category": 1,
+      "authors": [
+        2
+      ]
+    }
+  },
+  {
+    "model": "api.comment",
+    "pk": 1,
+    "fields": {
+      "created_at": "2022-08-31 9:00:00",
+      "author": 1,
+      "book": 1,
+      "text": "какой-то текст"
+    }
+  }
+]

@@ -1,19 +1,17 @@
+import datetime
+
 import pytest
 from django.urls import reverse
 from rest_framework import status
 
 from api.v1.models.recovery_code import RecoveryCode
-from tests.base import RegisterFunc
-from tests.consts import TEST_EMAIL, TEST_PASSWORD
+from tests.base import BaseClientMixin
+from tests.consts import TEST_PASSWORD
 
 
 @pytest.mark.django_db
-class TestRecoveryView(RegisterFunc):
+class TestRecoveryView(BaseClientMixin):
     url = reverse("recovery")
-
-    valid_request = {
-        "email": TEST_EMAIL
-    }
 
     invalid_requests = [
         {},
@@ -22,25 +20,21 @@ class TestRecoveryView(RegisterFunc):
         {"bla-bla": "bla-bla"}
     ]
 
-    def test_invalid(self, client):
-        self.register(client)
+    def test_invalid(self):
         for request in self.invalid_requests:
-            response = client.post(self.url, request)
-            data = response.json()
+            response = self.client.post(path=self.url,
+                                        data=request)
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert data.get("status") == "Failed"
 
-    def test_valid(self, client):
-        self.register(client)
-        response = client.post(self.url, self.valid_request)
-        data = response.json()
+    def test_valid(self, fixture_users_repository):
+        response = self.client.post(path=self.url,
+                                    data={"email": fixture_users_repository.admin.email})
         assert response.status_code == status.HTTP_200_OK
-        assert data.get('status') == 'Success'
-        assert data.get('detail') == 'Waiting password'
+        assert RecoveryCode.objects.filter(user=fixture_users_repository.admin).exists() is True
 
 
 @pytest.mark.django_db
-class TestRecoveryCodeView(RegisterFunc):
+class TestRecoveryCodeView(BaseClientMixin):
     valid_request = {
         "password": TEST_PASSWORD
     }
@@ -51,34 +45,34 @@ class TestRecoveryCodeView(RegisterFunc):
         {"password": "123"}
     ]
 
-    def request_recovery(self, client):
-        client.post(reverse("recovery"), {"email": TEST_EMAIL})
-
-    def test_valid(self, client):
-        self.register(client)
-        self.request_recovery(client)
-        recovery_code = RecoveryCode.objects.get(user__email=TEST_EMAIL)
-        response = client.post(reverse("recovery_code",
-                                       kwargs={"code": recovery_code.id}), self.valid_request)
-        data = response.json()
+    def test_valid(self, fixture_users_repository):
+        recovery_code = RecoveryCode.objects.get(user=fixture_users_repository.user)
+        recovery_code.created_at = datetime.datetime.now()
+        recovery_code.save()
+        response = self.client.post(path=reverse("recovery_code",
+                                                 kwargs={"code": recovery_code.id}),
+                                    data=self.valid_request)
         assert response.status_code == status.HTTP_200_OK
-        assert data.get("status") == "Success"
-        assert data.get("detail") == "Password changed"
+        assert RecoveryCode.objects.filter(user=fixture_users_repository.user).exists() is False
 
-    def test_invalid(self, client):
-        self.register(client)
-        self.request_recovery(client)
-        recovery_code = RecoveryCode.objects.get(user__email=TEST_EMAIL)
+    def test_invalid_request(self, fixture_users_repository):
+        recovery_code = RecoveryCode.objects.get(user=fixture_users_repository.user)
         for request in self.invalid_requests:
-            response = client.post(reverse("recovery_code",
-                                           kwargs={"code": recovery_code.id}), request)
-            data = response.json()
+            response = self.client.post(path=reverse("recovery_code",
+                                                     kwargs={"code": recovery_code.id}),
+                                        data=request)
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert data.get("status") == "Failed"
 
-        response = client.post(reverse("recovery_code",
-                                       kwargs={"code": "123"}), self.valid_request)
-        data = response.json()
+    def test_invalid_code(self, fixture_users_repository):
+        response = self.client.post(reverse("recovery_code",
+                                            kwargs={"code": "123"}), self.valid_request)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert data.get("status") == "Failed"
-        assert data.get("detail") == "Link not valid"
+
+    def test_code_expired(self, fixture_users_repository):
+        recovery_code = RecoveryCode.objects.get(user=fixture_users_repository.user)
+        recovery_code.created_at = datetime.datetime.now() - datetime.timedelta(days=7)
+        recovery_code.save()
+        response = self.client.post(path=reverse("recovery_code",
+                                                 kwargs={"code": recovery_code.id}),
+                                    data=self.valid_request)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST

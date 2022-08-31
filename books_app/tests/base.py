@@ -1,49 +1,64 @@
-from django.urls import reverse
 from rest_framework import status
-
-from api.v1.models.user import User
-from tests.consts import TEST_EMAIL, TEST_PASSWORD
+from rest_framework.test import APIClient
 
 
-class UnauthorizedTest:
+class ParameterIsMissing(Exception):
+    def __str__(self):
+        return 'You must set Authorization parameter otherwise use use_auth=False'
+
+
+def set_credentials(func):
+    def wrapper(self, *args, **extra):
+        if not extra.get('Authorization', None):
+            return func(self, *args, **extra)
+
+        user_fixture = extra.get('Authorization', None)
+        self.credentials(HTTP_AUTHORIZATION='Bearer ' + user_fixture._generate_jwt_token())
+        return func(self, *args, **extra)
+
+    return wrapper
+
+
+class BaseTestHttpClient(APIClient):
+    @set_credentials
+    def get(self, path, data=None, follow=False, **extra):
+        return super(BaseTestHttpClient, self).get(path, data=None, follow=False, **extra)
+
+    @set_credentials
+    def post(self, path, data=None, format=None, content_type=None,
+             follow=False, **extra):
+        return super(BaseTestHttpClient, self).post(path, data=data, format=format, content_type=content_type,
+                                                    follow=follow, **extra)
+
+    @set_credentials
+    def put(self, path, data=None, format=None, content_type=None,
+            follow=False, **extra):
+        return super(BaseTestHttpClient, self).put(path, data=data, format=format, content_type=content_type,
+                                                   follow=follow, **extra)
+
+    @set_credentials
+    def patch(self, path, data=None, format=None, content_type=None,
+              follow=False, **extra):
+        return super(BaseTestHttpClient, self).patch(path, data=data, format=format, content_type=content_type,
+                                                     follow=follow, **extra)
+
+    @set_credentials
+    def delete(self, path, data=None, format=None, content_type=None,
+               follow=False, **extra):
+        return super(BaseTestHttpClient, self).delete(path, data=data, format=format, content_type=content_type,
+                                                      follow=follow, **extra)
+
+
+class UnauthorizedTestMixin:
     url = None
 
-    def test_unauthorized(self, client):
+    def test_unauthorized(self):
+        client = APIClient()
         response = client.get(self.url)
         data = response.json()
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert data.get('detail') == 'Authentication credentials were not provided.'
 
 
-class RegisterFunc:
-    def register(self, client):
-        response = client.post(reverse('register_user'), {
-            "email": TEST_EMAIL,
-            "first_name": "first_name",
-            "second_name": "second_name",
-            "password": TEST_PASSWORD
-        })
-        return response.json()
-
-
-class SetupUserFuncs:
-    user = None
-
-    def init_user(self):
-        self.user = User.objects.get(email=TEST_EMAIL)
-
-    def user_set_active(self):
-        self.user.is_active = True
-        self.user.save()
-
-    def user_set_role_admin(self):
-        self.user.role = 2
-        self.user.save()
-
-    def user_set_role_author(self):
-        self.user.role = 1
-        self.user.save()
-
-    def user_set_role_default(self):
-        self.user.role = 0
-        self.user.save()
+class BaseClientMixin:
+    client = BaseTestHttpClient()

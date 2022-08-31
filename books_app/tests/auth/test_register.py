@@ -2,12 +2,12 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
+from tests.base import BaseClientMixin
 from tests.consts import TEST_EMAIL, TEST_PASSWORD
 
 
-@pytest.mark.django_db
-class TestRegisterUserView:
-    url = reverse('register_user')
+class BaseRegisterView(BaseClientMixin):
+    url = None
 
     valid_request = {
         "email": TEST_EMAIL,
@@ -38,66 +38,23 @@ class TestRegisterUserView:
         }
     ]
 
-    def test_valid(self, client):
-        response = client.post(self.url, self.valid_request)
-        data = response.json()
+    def test_valid(self):
+        response = self.client.post(path=self.url,
+                                    data=self.valid_request)
         assert response.status_code == status.HTTP_201_CREATED
-        assert data.get('status') == 'Success'
-        assert data.get('detail').get('access_token')
-        assert data.get('detail').get('refresh_token')
 
-    def test_invalid(self, client):
+    def test_invalid(self):
         for request in self.invalid_requests:
-            response = client.post(self.url, request)
-            data = response.json()
+            response = self.client.post(path=self.url,
+                                        data=request)
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert data.get('status') == 'Failed'
 
 
 @pytest.mark.django_db
-class TestRegisterAuthorView:
+class TestRegisterAuthorView(BaseRegisterView):
     url = reverse('register_author')
 
-    valid_request = {
-        "email": TEST_EMAIL,
-        "first_name": "first_name",
-        "second_name": "second_name",
-        "password": TEST_PASSWORD
-    }
 
-    invalid_requests = [
-        {},
-        {
-            "email": TEST_EMAIL,
-            "first_name": "first_name",
-            "second_name": "second_name",
-            "password": "123"
-        },
-        {
-            "email": "testru",
-            "first_name": "first_name",
-            "second_name": "second_name",
-            "password": TEST_PASSWORD
-        },
-
-        {
-            "email": TEST_EMAIL,
-            "first_name": "first_name",
-            "password": TEST_PASSWORD
-        }
-    ]
-
-    def test_valid(self, client):
-        response = client.post(self.url, self.valid_request)
-        data = response.json()
-        assert response.status_code == status.HTTP_201_CREATED
-        assert data.get('status') == 'Success'
-        assert data.get('detail').get('access_token')
-        assert data.get('detail').get('refresh_token')
-
-    def test_invalid(self, client):
-        for request in self.invalid_requests:
-            response = client.post(self.url, request)
-            data = response.json()
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert data.get('status') == 'Failed'
+@pytest.mark.django_db
+class TestRegisterUserView(BaseRegisterView):
+    url = reverse('register_user')
