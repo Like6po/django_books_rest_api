@@ -33,7 +33,7 @@ class RatingService(BaseService):
         if rating:
             return {"detail": "Rating exists",
                     "status": StatusValues.FAILED.value,
-                    "status_code": status.HTTP_400_BAD_REQUEST}
+                    "status_code": status.HTTP_409_CONFLICT}
 
         serializer = BookRatingsSerializer(data=self.request.data,
                                            context={"book": book,
@@ -49,6 +49,11 @@ class RatingService(BaseService):
 
     def get_one(self) -> dict:
 
+        book = Book.objects.filter(id=self.request.parser_context.get("kwargs").get("book_id")).first()
+        if not book:
+            return {"detail": "Book not found",
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_404_NOT_FOUND}
         rating = BookRating.objects.filter(id=self.request.parser_context.get("kwargs").get("rating_id")).first()
         if not rating:
             return {"detail": "Rating not found",
@@ -62,6 +67,11 @@ class RatingService(BaseService):
 
     def delete(self) -> dict:
 
+        book = Book.objects.filter(id=self.request.parser_context.get("kwargs").get("book_id")).first()
+        if not book:
+            return {"detail": "Book not found",
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_404_NOT_FOUND}
         rating = BookRating.objects.filter(id=self.request.parser_context.get("kwargs").get("rating_id")).first()
         if not rating:
             return {"detail": "Rating not found",
@@ -80,6 +90,11 @@ class RatingService(BaseService):
 
     def update(self, partial: bool = False) -> dict:
 
+        book = Book.objects.filter(id=self.request.parser_context.get("kwargs").get("book_id")).first()
+        if not book:
+            return {"detail": "Book not found",
+                    "status": StatusValues.FAILED.value,
+                    "status_code": status.HTTP_404_NOT_FOUND}
         rating = BookRating.objects.filter(id=self.request.parser_context.get("kwargs").get("rating_id")).first()
         if not rating:
             return {"detail": "Rating not found",

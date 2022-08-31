@@ -33,7 +33,7 @@ class RatingView(ListCreateAPIView):
         result = rating.delete()
         return Response(result, status=result["status_code"])
 
-    def update(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
         rating = RatingService(request)
         result = rating.update()
         return Response(result, status=result["status_code"])

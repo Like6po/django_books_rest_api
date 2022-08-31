@@ -64,7 +64,7 @@ class FavoriteService(BaseService):
         if not favorite:
             return {"detail": "Favorite not exists",
                     "status": StatusValues.FAILED.value,
-                    "status_code": status.HTTP_400_BAD_REQUEST}
+                    "status_code": status.HTTP_404_NOT_FOUND}
 
         favorite.delete()
         return {"status": StatusValues.SUCCESS.value,
