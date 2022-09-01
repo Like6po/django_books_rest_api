@@ -3,11 +3,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from api.v1.serializers.book.rating import BookRatingsSerializer
 from api.v1.services.book.rating import RatingService
 
 
 class RatingsView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = BookRatingsSerializer
 
     def get(self, request: Request, *args, **kwargs):
         rating = RatingService(request)
@@ -22,6 +24,7 @@ class RatingsView(ListCreateAPIView):
 
 class RatingView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = BookRatingsSerializer
 
     def get(self, request: Request, *args, **kwargs):
         rating = RatingService(request)

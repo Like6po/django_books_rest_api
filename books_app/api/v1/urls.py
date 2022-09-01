@@ -26,5 +26,5 @@ urlpatterns = [
     path('books/<int:book_id>/ratings/<int:rating_id>', rating.RatingView.as_view(), name="books_ratings_detail"),
 
     # Favorite
-    path('books/favorites', favorite.RatingsView.as_view(), name="favorites")
+    path('books/favorites', favorite.FavoriteView.as_view(), name="favorites")
 ]

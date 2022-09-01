@@ -3,11 +3,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from api.v1.serializers.author import AuthorsSerializer
 from api.v1.services.author import AuthorService
 
 
 class AuthorsView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = AuthorsSerializer
 
     def get(self, request: Request, *args, **kwargs):
         author = AuthorService(request)
@@ -22,6 +24,7 @@ class AuthorsView(ListCreateAPIView):
 
 class AuthorView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = AuthorsSerializer
 
     def get(self, request: Request, *args, **kwargs):
         author = AuthorService(request)
