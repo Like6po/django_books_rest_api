@@ -1,3 +1,14 @@
+**
+
+!books_app/api
+!books_app/books_app
+!books_app/enviroment
+!books_app/manage.py
+!books_app/tests
+!books_app/pytest.ini
+!books_app/test_fixture.json
+!books_app/static
+
 *.pyc
 *.pyo
 *.mo
@@ -5,6 +16,7 @@
 *.css.map
 *.egg-info
 *.sql.gz
+.pytest_cache
 .cache
 .project
 .idea
@@ -14,14 +26,12 @@
 .git/
 .sass-cache
 .vagrant/
-__pycache__
+**/__pycache__
 dist
 docs
 env
 logs
-src/{{ project_name }}/settings/local.py
 src/node_modules
 web/media
 web/static/CACHE
 stats
-Dockerfile

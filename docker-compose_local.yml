@@ -1,0 +1,48 @@
+version: '3.3'
+
+services:
+  postgres:
+    image: postgres:14.3
+    container_name: postgres-books-api-local
+    expose:
+      - 5432
+    env_file:
+      - "books_app/enviroment/local/.env"
+
+  redis:
+    image: redis:7.0
+    container_name: redis-books-api-local
+    expose:
+      - 6379
+
+  celery:
+    container_name: celery-books-api-local
+    build:
+      context: .
+      dockerfile: books_app/enviroment/local/Dockerfile
+    command: celery -A api.celery worker -l info
+    env_file:
+      - "books_app/enviroment/local/.env"
+    depends_on:
+      - redis
+
+  django:
+    container_name: django-books-api-local
+    build:
+      context: .
+      dockerfile: books_app/enviroment/local/Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./books_app/api:/root/django/books_app/api
+      - ./books_app/books_app:/root/django/books_app/books_app
+      - ./books_app/enviroment/local/settings.py:/root/django/books_app/books_app/settings.py:ro
+      - ./books_app/enviroment/local/.env:/root/django/books_app/.env:ro
+      - ./books_app/static:/root/django/books_app/static
+    ports:
+      - "8000:8000"
+    restart: always
+    env_file:
+      - "books_app/enviroment/local/.env"
+    depends_on:
+      - postgres
+      - redis

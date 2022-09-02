@@ -1,0 +1,55 @@
+version: '3.3'
+
+services:
+  postgres:
+    image: postgres:14.3
+    container_name: postgres-books-api-prod
+    expose:
+      - 5432
+    env_file:
+      - "books_app/enviroment/prod/.env"
+
+  redis:
+    image: redis:7.0
+    container_name: redis-books-api-prod
+    expose:
+      - 6379
+
+  celery:
+    container_name: celery-books-api-prod
+    build:
+      context: .
+      dockerfile: books_app/enviroment/prod/Dockerfile
+    command: celery -A api.celery worker -l info
+    env_file:
+      - "books_app/enviroment/prod/.env"
+    depends_on:
+      - redis
+
+  django:
+    container_name: django-books-api-prod
+    build:
+      context: .
+      dockerfile: books_app/enviroment/prod/Dockerfile
+    command: gunicorn --bind 0.0.0.0:8000 books_app.wsgi:application
+    restart: always
+    env_file:
+      - "books_app/enviroment/prod/.env"
+    depends_on:
+      - postgres
+      - redis
+
+  nginx:
+    image: nginx:1.21.6
+    container_name: nginx-prod
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./log:/var/log/nginx
+      - ./books_app/static:/home/nginx/static
+    ports:
+      - "80:80"
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+    depends_on:
+      - django
