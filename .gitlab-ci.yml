@@ -1,0 +1,11 @@
+
+stages:
+  - deploy
+
+deploy-job:
+  stage: deploy
+  image: docker:20.10.17
+  tags:
+    - books_api
+  script:
+    - docker compose -f ./docker-compose_prod.yml up --build
