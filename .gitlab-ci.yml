@@ -24,5 +24,7 @@ deploy-job:
   image: docker:20.10.17
   tags:
     - books_api
+  before_script:
+    - cp $ENV_FILE /books_app/enviroment/prod/.env
   script:
     - docker compose -f ./docker-compose_prod.yml up --build
