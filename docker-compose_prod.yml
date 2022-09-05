@@ -6,8 +6,7 @@ services:
     container_name: postgres-books-api-prod
     expose:
       - 5432
-    env_file:
-      - "books_app/enviroment/prod/.env"
+
 
   redis:
     image: redis:7.0
@@ -21,8 +20,6 @@ services:
       context: .
       dockerfile: books_app/enviroment/prod/Dockerfile
     command: celery -A api.celery worker -l info
-    env_file:
-      - "books_app/enviroment/prod/.env"
     depends_on:
       - redis
 
@@ -33,8 +30,6 @@ services:
       dockerfile: books_app/enviroment/prod/Dockerfile
     command: gunicorn --bind 0.0.0.0:8000 books_app.wsgi:application
     restart: always
-    env_file:
-      - "books_app/enviroment/prod/.env"
     depends_on:
       - postgres
       - redis
